@@ -1,0 +1,67 @@
+basePath: /api
+definitions:
+  health.livenessStatus:
+    enum:
+    - OK
+    type: string
+    x-enum-varnames:
+    - livenessStatusOk
+  health.readinessResponseDown:
+    properties:
+      status:
+        allOf:
+        - $ref: '#/definitions/health.readinessStatus'
+        example: DOWN
+    type: object
+  health.readinessResponseUp:
+    properties:
+      status:
+        allOf:
+        - $ref: '#/definitions/health.readinessStatus'
+        example: UP
+    type: object
+  health.readinessStatus:
+    enum:
+    - UP
+    - DOWN
+    type: string
+    x-enum-varnames:
+    - readinessStatusUp
+    - readinessStatusDown
+info:
+  contact: {}
+  description: This is a sample server.
+  title: Go with Gin and Zerolog
+  version: 1.0.0
+paths:
+  /v1/liveness:
+    get:
+      description: Check service health return "OK"
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/health.livenessStatus'
+      summary: Check service health
+      tags:
+      - Health
+  /v1/readiness:
+    get:
+      description: Check connection to database and other services
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/health.readinessResponseUp'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/health.readinessResponseDown'
+      summary: Check service readiness
+      tags:
+      - Health
+swagger: "2.0"

@@ -1,0 +1,106 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a sample server.",
+        "title": "Go with Gin and Zerolog",
+        "contact": {},
+        "version": "1.0.0"
+    },
+    "basePath": "/api",
+    "paths": {
+        "/v1/liveness": {
+            "get": {
+                "description": "Check service health return \"OK\"",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Check service health",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/health.livenessStatus"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/readiness": {
+            "get": {
+                "description": "Check connection to database and other services",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Check service readiness",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/health.readinessResponseUp"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/health.readinessResponseDown"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "health.livenessStatus": {
+            "type": "string",
+            "enum": [
+                "OK"
+            ],
+            "x-enum-varnames": [
+                "livenessStatusOk"
+            ]
+        },
+        "health.readinessResponseDown": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/health.readinessStatus"
+                        }
+                    ],
+                    "example": "DOWN"
+                }
+            }
+        },
+        "health.readinessResponseUp": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/health.readinessStatus"
+                        }
+                    ],
+                    "example": "UP"
+                }
+            }
+        },
+        "health.readinessStatus": {
+            "type": "string",
+            "enum": [
+                "UP",
+                "DOWN"
+            ],
+            "x-enum-varnames": [
+                "readinessStatusUp",
+                "readinessStatusDown"
+            ]
+        }
+    }
+}
