@@ -13,9 +13,10 @@ import (
 // @Tags Health
 // @Produce json
 // @Success 200 {object} readinessResponseUp
+// @Failure 500 {object} errs.HTTPError
 // @Failure 503 {object} readinessResponseDown
-// @Router /v1/readiness [get]
-func (m *Module) readiness(c *gin.Context) {
+// @Router /v1/readinessHandler [get]
+func (m *Module) readinessHandler(c *gin.Context) {
 	result, err := m.getReadiness()
 
 	if err != nil {

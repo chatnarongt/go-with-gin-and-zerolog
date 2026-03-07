@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/v1/liveness": {
+        "/v1/livenessHandler": {
             "get": {
                 "description": "Check service health return \"OK\"",
                 "produces": [
@@ -35,7 +35,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/readiness": {
+        "/v1/readinessHandler": {
             "get": {
                 "description": "Check connection to database and other services",
                 "produces": [
@@ -52,6 +52,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/health.readinessResponseUp"
                         }
                     },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errs.HTTPError"
+                        }
+                    },
                     "503": {
                         "description": "Service Unavailable",
                         "schema": {
@@ -63,6 +69,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "errs.HTTPError": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "health.livenessStatus": {
             "type": "string",
             "enum": [

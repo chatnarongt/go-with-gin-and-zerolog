@@ -11,8 +11,8 @@ import (
 // @Tags Health
 // @Produce plain
 // @Success 200 {object} livenessStatus
-// @Router /v1/liveness [get]
-func (m *Module) liveness(c *gin.Context) {
+// @Router /v1/livenessHandler [get]
+func (m *Module) livenessHandler(c *gin.Context) {
 	result := m.getLiveness()
 	c.String(http.StatusOK, string(result))
 }
