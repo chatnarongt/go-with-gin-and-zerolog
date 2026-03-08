@@ -1,7 +1,11 @@
 words:
   - chatnarongt
+  - GOARCH
   - gonic
+  - ldflags
   - mssqldb
   - swaggo
+  - tzdata
   - wireinject
   - zerolog
+  - zoneinfo

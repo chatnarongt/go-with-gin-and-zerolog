@@ -21,25 +21,27 @@ func ErrorHandler() gin.HandlerFunc {
 
 		c.Next()
 
-		if len(c.Errors) > 0 {
-			err := c.Errors.Last().Err
-
-			if httpError, ok := err.(*errs.HTTPError); ok {
-				c.JSON(httpError.StatusCode, httpError)
-				return
-			}
-
-			internalServerError := errs.NewInternalServerError()
-			c.JSON(internalServerError.StatusCode, internalServerError)
-
-			event := log.Error().Str("method", req.Method).Str("path", req.URL.Path)
-			if len(req.URL.RawQuery) > 0 {
-				event.Str("query", req.URL.RawQuery)
-			}
-			if len(bodyBytes) > 0 {
-				event.RawJSON("body", bodyBytes)
-			}
-			event.Msg(err.Error())
+		if len(c.Errors) == 0 {
+			return
 		}
+
+		err := c.Errors.Last().Err
+
+		if httpError, ok := err.(*errs.HTTPError); ok {
+			c.JSON(httpError.StatusCode, httpError)
+			return
+		}
+
+		internalServerError := errs.NewInternalServerError()
+		c.JSON(internalServerError.StatusCode, internalServerError)
+
+		event := log.Error().Str("method", req.Method).Str("path", req.URL.Path)
+		if len(req.URL.RawQuery) > 0 {
+			event.Str("query", req.URL.RawQuery)
+		}
+		if len(bodyBytes) > 0 {
+			event.RawJSON("body", bodyBytes)
+		}
+		event.Msg(err.Error())
 	}
 }
