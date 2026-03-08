@@ -33,7 +33,7 @@ Custom HTTP error types are defined in `internal/errs/`. These are used througho
 
 ## Code Style & Conventions
 
-- **Environment configuration**: All configuration values are read from environment variables via helper functions in `internal/modules/config/` (`getEnvAsString`, `getEnvAsInt`, `getEnvAsBool`). Never hardcode configuration values.
+- **Environment configuration**: All configuration values are read from environment variables via helper functions in `internal/modules/config/` (`getEnvAsString`, `getEnvAsInt`, `getEnvAsBool`). Environmental overrides are loaded from `.env.<environment>` files (e.g., `.env.development`, `.env.test`). Never hardcode configuration values.
 - **Logging**: Use `github.com/rs/zerolog/log` for all logging. Use structured fields (e.g., `log.Error().Err(err).Msg("message")`), not `fmt.Printf`.
 - **Graceful shutdown**: The application handles `SIGINT` and `SIGTERM` and runs cleanup functions registered via `app.OnBeforeShutdown()` (e.g., closing the database connection).
 - **Swagger annotations**: API endpoints are documented using [Swaggo](https://github.com/swaggo/swag) annotations in handler functions. After modifying annotations, run `make swag` to regenerate `docs/`.
@@ -42,8 +42,11 @@ Custom HTTP error types are defined in `internal/errs/`. These are used througho
 ## Building & Running
 
 ```bash
-# Run locally (loads .env and .env.local)
+# Run locally (loads .env and .env.development by default)
 make run
+
+# Run with specific environment (e.g., test)
+make env-test run
 
 # Run tests
 make test

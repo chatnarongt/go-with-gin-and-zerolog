@@ -59,10 +59,10 @@ cd go-with-gin-and-zerolog
 Copy the example file and fill in your database credentials:
 
 ```bash
-cp .env.example .env.local
+cp .env.example .env.development
 ```
 
-Edit `.env.local` with your settings. See [Environment Variables](#environment-variables) for details.
+Edit `.env.development` with your settings. See [Environment Variables](#environment-variables) for details.
 
 ### 3. Run the server
 
@@ -76,10 +76,10 @@ The server will start on the port specified by `APP_PORT` (default: `8080`).
 
 | Command | Description |
 |---|---|
-| `make run` | Run the server with `.env` + `.env.local` |
-| `make run-worker` | Run the worker with `.env` + `.env.local` |
-| `make run-test` | Run the server with `.env` + `.env.test` |
-| `make run-staging` | Run the server with `.env` + `.env.staging` |
+| `make run` | Run the server with `.env` + `.env.development` |
+| `make run-worker` | Run the worker with `.env` + `.env.development` |
+| `make env-test run` | Run the server with `.env` + `.env.test` |
+| `make env-staging run` | Run the server with `.env` + `.env.staging` |
 | `make build` | Build the binary to `bin/api` |
 | `make test` | Run all tests with verbose output |
 | `make swag` | Regenerate Swagger documentation |

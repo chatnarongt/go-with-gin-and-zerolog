@@ -1,30 +1,15 @@
 .DEFAULT_GOAL := run
+ENV ?= development
+
+.PHONY: env-%
+env-%:
+	$(eval ENV := $*)
 
 .PHONY: run
 run:
 	@set -a; \
 	if [ -f .env ]; then . ./.env; fi; \
-	if [ -f .env.local ]; then . ./.env.local; fi; \
-	set +a; \
-	trap '' INT TERM; \
-	go run ./cmd/api/; \
-	true
-
-.PHONY: run-test
-run-test:
-	@set -a; \
-	if [ -f .env ]; then . ./.env; fi; \
-	if [ -f .env.test ]; then . ./.env.test; fi; \
-	set +a; \
-	trap '' INT TERM; \
-	go run ./cmd/api/; \
-	true
-
-.PHONY: run-staging
-run-staging:
-	@set -a; \
-	if [ -f .env ]; then . ./.env; fi; \
-	if [ -f .env.staging ]; then . ./.env.staging; fi; \
+	if [ -f .env.$(ENV) ]; then . ./.env.$(ENV); fi; \
 	set +a; \
 	trap '' INT TERM; \
 	go run ./cmd/api/; \
@@ -34,7 +19,7 @@ run-staging:
 run-worker:
 	@set -a; \
 	if [ -f .env ]; then . ./.env; fi; \
-	if [ -f .env.local ]; then . ./.env.local; fi; \
+	if [ -f .env.$(ENV) ]; then . ./.env.$(ENV); fi; \
 	set +a; \
 	trap '' INT TERM; \
 	go run ./cmd/worker/; \
