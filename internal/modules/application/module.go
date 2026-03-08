@@ -40,6 +40,8 @@ func NewModule(config *config.Module) *Module {
 	router.Use(gin.Recovery())
 	router.Use(middleware.ErrorHandler())
 
+	router.NoRoute(notFound)
+
 	if appConfig.EnableSwagger {
 		router.GET("/swagger", func(c *gin.Context) {
 			c.Redirect(http.StatusTemporaryRedirect, "/swagger/index.html")
