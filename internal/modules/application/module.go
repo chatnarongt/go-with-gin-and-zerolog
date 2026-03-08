@@ -91,7 +91,7 @@ func (m *Module) shutdown() {
 	defer cancel()
 
 	if err := m.server.Shutdown(ctx); err != nil {
-		log.Error().Err(err).Msg("Server shutdown error")
+		log.Error().Err(err).Msg("Server shut down error")
 	}
 
 	for _, f := range m.onBeforeShutdowns {
