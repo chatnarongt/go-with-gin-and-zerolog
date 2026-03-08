@@ -18,7 +18,8 @@ The initialization order matters:
 2. `database` — Opens the SQL Server connection pool (depends on `config`)
 3. `swagger` — Configures Swagger UI (depends on `config`)
 4. `health` — Provides liveness and readiness endpoints (depends on `database`)
-5. `application` — Creates the Gin engine, maps routes, and starts the HTTP server (depends on `config`)
+5. `schedule` — Background jobs and cron tasks (depends on `database`)
+6. `application` — Creates the Gin engine, maps routes, and starts the HTTP server (depends on `config`)
 
 ### Route Mapping
 
@@ -62,6 +63,7 @@ make swag
 | File | Purpose |
 |---|---|
 | `cmd/api/main.go` | Application entrypoint and module wiring |
+| `cmd/worker/main.go` | Background worker entrypoint and module wiring |
 | `cmd/api/Dockerfile` | Multi-stage production Docker build (scratch base) |
 | `internal/modules/application/module.go` | HTTP server lifecycle and graceful shutdown |
 | `internal/modules/config/module.go` | Configuration module |

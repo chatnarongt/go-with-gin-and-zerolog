@@ -4,6 +4,7 @@ words:
   - gonic
   - ldflags
   - mssqldb
+  - robfig
   - swaggo
   - tzdata
   - wireinject

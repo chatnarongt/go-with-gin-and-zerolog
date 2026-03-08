@@ -30,6 +30,16 @@ run-staging:
 	go run ./cmd/api/; \
 	true
 
+.PHONY: run-worker
+run-worker:
+	@set -a; \
+	if [ -f .env ]; then . ./.env; fi; \
+	if [ -f .env.local ]; then . ./.env.local; fi; \
+	set +a; \
+	trap '' INT TERM; \
+	go run ./cmd/worker/; \
+	true
+
 .PHONY: build
 build:
 	go build -o bin/api ./cmd/api

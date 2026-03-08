@@ -17,9 +17,11 @@ A RESTful API server built with [Gin](https://github.com/gin-gonic/gin) and stru
 ```
 .
 ├── cmd/
-│   └── api/
-│       ├── main.go              # Application entrypoint
-│       └── Dockerfile           # Multi-stage Docker build (scratch)
+│   ├── api/
+│   │   ├── main.go              # Application entrypoint
+│   │   └── Dockerfile           # Multi-stage Docker build (scratch)
+│   └── worker/                  # Background jobs application
+│       └── main.go              # Worker entrypoint
 ├── docs/                        # Auto-generated Swagger documentation
 ├── internal/
 │   ├── errs/                    # Custom HTTP error types
@@ -29,6 +31,7 @@ A RESTful API server built with [Gin](https://github.com/gin-gonic/gin) and stru
 │       ├── config/              # Environment-based configuration
 │       ├── database/            # SQL Server connection & pool management
 │       ├── health/              # Liveness & readiness health checks
+│       ├── schedule/            # Scheduled background jobs & cron tasks
 │       └── swagger/             # Swagger UI controller
 ├── .env.example                 # Environment variable reference
 ├── Makefile                     # Common development commands
@@ -74,6 +77,7 @@ The server will start on the port specified by `APP_PORT` (default: `8080`).
 | Command | Description |
 |---|---|
 | `make run` | Run the server with `.env` + `.env.local` |
+| `make run-worker` | Run the worker with `.env` + `.env.local` |
 | `make run-test` | Run the server with `.env` + `.env.test` |
 | `make run-staging` | Run the server with `.env` + `.env.staging` |
 | `make build` | Build the binary to `bin/api` |
