@@ -16,7 +16,7 @@ COPY ./cmd ./cmd
 COPY ./docs ./docs
 COPY ./internal ./internal
 
-RUN go build -ldflags="-s -w" -o server ./cmd/worker/main.go
+RUN go build -ldflags="-s -w" -o bin/worker ./cmd/worker/main.go
 
 FROM scratch
 
@@ -24,8 +24,8 @@ WORKDIR /app
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
-COPY --from=builder --chown=root:root --chmod=755 /app/server .
+COPY --from=builder --chown=root:root --chmod=755 /app/bin/worker .
 
 USER 1000
 
-CMD ["./server"]
+CMD ["./worker"]
