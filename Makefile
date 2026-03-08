@@ -1,11 +1,34 @@
 .DEFAULT_GOAL := run
 
--include .env .env.local
-export
-
 .PHONY: run
 run:
-	@trap '' INT TERM; go run ./cmd/api/; true
+	@set -a; \
+	if [ -f .env ]; then . ./.env; fi; \
+	if [ -f .env.local ]; then . ./.env.local; fi; \
+	set +a; \
+	trap '' INT TERM; \
+	go run ./cmd/api/; \
+	true
+
+.PHONY: run-test
+run-test:
+	@set -a; \
+	if [ -f .env ]; then . ./.env; fi; \
+	if [ -f .env.test ]; then . ./.env.test; fi; \
+	set +a; \
+	trap '' INT TERM; \
+	go run ./cmd/api/; \
+	true
+
+.PHONY: run-staging
+run-staging:
+	@set -a; \
+	if [ -f .env ]; then . ./.env; fi; \
+	if [ -f .env.staging ]; then . ./.env.staging; fi; \
+	set +a; \
+	trap '' INT TERM; \
+	go run ./cmd/api/; \
+	true
 
 .PHONY: build
 build:
