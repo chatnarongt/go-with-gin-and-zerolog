@@ -7,6 +7,7 @@ import (
 	"github.com/chatnarongt/go-with-gin-and-zerolog/internal/modules/config"
 	"github.com/chatnarongt/go-with-gin-and-zerolog/internal/modules/database"
 	"github.com/chatnarongt/go-with-gin-and-zerolog/internal/modules/health"
+	"github.com/chatnarongt/go-with-gin-and-zerolog/internal/modules/swagger"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -19,11 +20,15 @@ func main() {
 
 	db := database.NewModule(cfg)
 
+	swm := swagger.NewModule(cfg)
+
 	hm := health.NewModule(db.DB)
 
 	app := application.NewModule(cfg)
 
-	app.MapRoutes(hm)
+	app.MapRoutes(swm)
+
+	app.MapAPIRoutes(hm)
 
 	app.OnBeforeShutdown(db.Cleanup)
 

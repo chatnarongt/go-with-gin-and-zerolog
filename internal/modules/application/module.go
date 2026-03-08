@@ -10,13 +10,10 @@ import (
 	"syscall"
 	"time"
 
-	_ "github.com/chatnarongt/go-with-gin-and-zerolog/docs"
 	"github.com/chatnarongt/go-with-gin-and-zerolog/internal/middleware"
 	"github.com/chatnarongt/go-with-gin-and-zerolog/internal/modules/config"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 type Module struct {
@@ -24,6 +21,7 @@ type Module struct {
 	appConfig         *config.AppConfig
 	server            *http.Server
 	onBeforeShutdowns []func()
+	engine            *gin.Engine
 	Router            *gin.RouterGroup
 }
 
@@ -33,7 +31,9 @@ func NewModule(config *config.Module) *Module {
 	if appConfig.Environment != "development" {
 		gin.SetMode(gin.ReleaseMode)
 	} else {
-		fmt.Println() // Just to add a newline after the server startup log for better readability in development mode
+		// Just to add a newline after the server startup log for better readability in development mode
+		fmt.Println()
+		defer fmt.Println()
 	}
 
 	router := gin.New()
@@ -41,13 +41,6 @@ func NewModule(config *config.Module) *Module {
 	router.Use(middleware.ErrorHandler())
 
 	router.NoRoute(notFound)
-
-	if appConfig.EnableSwagger {
-		router.GET("/swagger", func(c *gin.Context) {
-			c.Redirect(http.StatusTemporaryRedirect, "/swagger/index.html")
-		})
-		router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	}
 
 	log.Debug().Msg("Application Module initialized successfully")
 
@@ -58,6 +51,7 @@ func NewModule(config *config.Module) *Module {
 			Addr:    fmt.Sprintf(":%d", appConfig.Port),
 			Handler: router,
 		},
+		engine: router,
 		Router: router.Group("/api"),
 	}
 }
@@ -72,7 +66,8 @@ func (m *Module) ListenAndServe() {
 	}()
 
 	if m.appConfig.Environment == "development" {
-		fmt.Println() // Just to add a newline after the server startup log for better readability in development mode
+		// Just to add a newline after the server startup log for better readability in development mode
+		fmt.Println()
 	}
 	log.Info().Msg("Server started successfully")
 	log.Info().Msgf("Listening on http://localhost%s", m.server.Addr)
