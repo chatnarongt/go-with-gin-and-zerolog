@@ -12,7 +12,7 @@ func (m *Module) getReadiness() (readinessResponse, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	if _, err := m.db.QueryContext(ctx, "SELECT 1"); err != nil {
+	if err := m.db.PingContext(ctx); err != nil {
 		return readinessResponse{Status: readinessStatusDown}, errDatabaseDown
 	}
 

@@ -1,12 +1,4 @@
-basePath: /api
 definitions:
-  errs.HTTPError:
-    properties:
-      code:
-        type: string
-      message:
-        type: string
-    type: object
   health.livenessStatus:
     enum:
     - OK
@@ -41,7 +33,7 @@ info:
   title: Go with Gin and Zerolog
   version: 1.0.0
 paths:
-  /v1/livenessHandler:
+  /api/v1/health/liveness:
     get:
       description: Check service health return "OK"
       produces:
@@ -54,7 +46,7 @@ paths:
       summary: Check service health
       tags:
       - Health
-  /v1/readinessHandler:
+  /api/v1/health/readiness:
     get:
       description: Check connection to database and other services
       produces:
@@ -64,10 +56,6 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/health.readinessResponseUp'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/errs.HTTPError'
         "503":
           description: Service Unavailable
           schema:

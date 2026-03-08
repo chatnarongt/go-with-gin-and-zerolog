@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/v1/livenessHandler": {
+        "/api/v1/health/liveness": {
             "get": {
                 "description": "Check service health return \"OK\"",
                 "produces": [
@@ -35,7 +35,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/readinessHandler": {
+        "/api/v1/health/readiness": {
             "get": {
                 "description": "Check connection to database and other services",
                 "produces": [
@@ -52,12 +52,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/health.readinessResponseUp"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/errs.HTTPError"
-                        }
-                    },
                     "503": {
                         "description": "Service Unavailable",
                         "schema": {
@@ -69,17 +63,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "errs.HTTPError": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
         "health.livenessStatus": {
             "type": "string",
             "enum": [
@@ -133,7 +116,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0.0",
 	Host:             "",
-	BasePath:         "/api",
+	BasePath:         "",
 	Schemes:          []string{},
 	Title:            "Go with Gin and Zerolog",
 	Description:      "This is a sample server.",

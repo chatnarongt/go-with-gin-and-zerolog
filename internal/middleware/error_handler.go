@@ -11,6 +11,14 @@ import (
 
 func ErrorHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		req := c.Request
+
+		var bodyBytes []byte
+		if req.Body != nil {
+			bodyBytes, _ = io.ReadAll(req.Body)
+			req.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+		}
+
 		c.Next()
 
 		if len(c.Errors) > 0 {
@@ -23,14 +31,6 @@ func ErrorHandler() gin.HandlerFunc {
 
 			internalServerError := errs.NewInternalServerError()
 			c.JSON(internalServerError.StatusCode, internalServerError)
-
-			req := c.Request
-
-			var bodyBytes []byte
-			if req.Body != nil {
-				bodyBytes, _ = io.ReadAll(req.Body)
-				req.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-			}
 
 			event := log.Error().Str("method", req.Method).Str("path", req.URL.Path)
 			if len(req.URL.RawQuery) > 0 {

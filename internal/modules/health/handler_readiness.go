@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/chatnarongt/go-with-gin-and-zerolog/internal/errs"
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,9 +12,8 @@ import (
 // @Tags Health
 // @Produce json
 // @Success 200 {object} readinessResponseUp
-// @Failure 500 {object} errs.HTTPError
 // @Failure 503 {object} readinessResponseDown
-// @Router /v1/readinessHandler [get]
+// @Router /api/v1/health/readiness [get]
 func (m *Module) readinessHandler(c *gin.Context) {
 	result, err := m.getReadiness()
 
@@ -25,7 +23,12 @@ func (m *Module) readinessHandler(c *gin.Context) {
 			return
 		}
 
-		c.Error(errs.NewInternalServerError())
+		c.JSON(
+			http.StatusInternalServerError,
+			readinessResponse{
+				Status: readinessStatusDown,
+			},
+		)
 		return
 	}
 
