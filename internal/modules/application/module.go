@@ -80,7 +80,7 @@ func (m *Module) ListenAndServe() {
 		log.Fatal().Err(err).Msgf("Server error")
 	case sig := <-quit:
 		fmt.Print("\n")
-		log.Info().Msgf("Received signal %s, shutting down gracefully...", sig)
+		log.Info().Msgf("Received signal %s, shutting down...", sig)
 	}
 
 	m.shutdown()
