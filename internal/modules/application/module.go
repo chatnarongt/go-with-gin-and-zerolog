@@ -33,7 +33,7 @@ func NewModule(config *config.Module) *Module {
 	} else {
 		// Just to add a newline after the server startup log for better readability in development mode
 		fmt.Println()
-		defer fmt.Println()
+		defer fmt.Println() // Print a newline before function exit
 	}
 
 	router := gin.New()
@@ -77,7 +77,7 @@ func (m *Module) ListenAndServe() {
 
 	select {
 	case err := <-errCh:
-		log.Fatal().Msgf("Server error: %v", err)
+		log.Fatal().Err(err).Msgf("Server error")
 	case sig := <-quit:
 		fmt.Print("\n")
 		log.Info().Msgf("Received signal %s, shutting down gracefully...", sig)
