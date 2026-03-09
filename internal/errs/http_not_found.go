@@ -9,3 +9,10 @@ func NewNotFound(msg string) *HTTPError {
 		Message:    msg,
 	}
 }
+
+// --- Only for Swagger ---
+
+type HTTPNotFoundError struct {
+	Code    string `json:"code"    example:"NOT_FOUND"`
+	Message string `json:"message" example:"Route GET / not found"`
+}

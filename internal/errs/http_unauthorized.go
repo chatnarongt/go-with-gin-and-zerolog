@@ -9,3 +9,10 @@ func NewUnauthorized(msg string) *HTTPError {
 		Message:    msg,
 	}
 }
+
+// --- Only for Swagger ---
+
+type HTTPUnauthorizedError struct {
+	Code    string `json:"code"    example:"UNAUTHORIZED"`
+	Message string `json:"message" example:"Unauthorized"`
+}

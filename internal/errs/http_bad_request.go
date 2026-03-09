@@ -9,3 +9,10 @@ func NewBadRequest(msg string) *HTTPError {
 		Message:    msg,
 	}
 }
+
+// --- Only for Swagger ---
+
+type HTTPBadRequestError struct {
+	Code    string `json:"code"    example:"BAD_REQUEST"`
+	Message string `json:"message" example:"Bad request"`
+}
