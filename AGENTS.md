@@ -48,23 +48,29 @@ Custom HTTP error types are defined in `internal/errs/`. These are used througho
 ## Building & Running
 
 ```bash
-# Run locally (loads .env and .env.development by default)
-make run
+# Run API locally (loads .env, .env.development, cmd/api/.env, cmd/api/.env.development)
+make run api
+
+# Run worker locally
+make run worker
 
 # Run with specific environment (e.g., test)
-make env-test run
+make run api ENV=test
+
+# Run with positional environment goal (e.g., staging)
+make run api staging
 
 # Run tests
 make test
 
 # Build binary
-make build
+make build api
 
 # Build Docker image
 docker build -f cmd/api/Dockerfile -t go-with-gin-and-zerolog .
 
 # Regenerate Swagger docs
-make swag
+make swag api
 ```
 
 ## Key Files

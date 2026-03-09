@@ -69,7 +69,7 @@ Edit `.env.development` with your settings. See [Environment Variables](#environ
 ### 3. Run the server
 
 ```bash
-make run
+make run api
 ```
 
 The server will start on the port specified by `APP_PORT` (default: `8080`).
@@ -78,13 +78,22 @@ The server will start on the port specified by `APP_PORT` (default: `8080`).
 
 | Command | Description |
 |---|---|
-| `make run` | Run the server with `.env` + `.env.development` |
-| `make run-worker` | Run the worker with `.env` + `.env.development` |
-| `make env-test run` | Run the server with `.env` + `.env.test` |
-| `make env-staging run` | Run the server with `.env` + `.env.staging` |
-| `make build` | Build the binary to `bin/api` |
+| `make run api` | Run API app (default environment: `development`) |
+| `make run worker` | Run worker app (default environment: `development`) |
+| `make run api staging` | Run API app with `staging` environment |
+| `make run api ENV=test` | Run API app with `test` environment |
+| `make run api ENV=local` | Run API app with a custom environment file (e.g., `.env.local`) |
+| `make build api` | Build API binary to `bin/api` |
+| `make build worker` | Build worker binary to `bin/worker` |
 | `make test` | Run all tests with verbose output |
-| `make swag` | Regenerate Swagger documentation |
+| `make swag api` | Regenerate Swagger documentation for API entrypoint |
+
+Environment files are loaded in this order (later files override earlier files):
+
+1. `.env`
+2. `.env.<environment>`
+3. `cmd/<app>/.env`
+4. `cmd/<app>/.env.<environment>`
 
 ## Environment Variables
 
@@ -136,7 +145,7 @@ http://localhost:8080/swagger/index.html
 To regenerate the documentation after modifying API annotations:
 
 ```bash
-make swag
+make swag api
 ```
 
 ## License
