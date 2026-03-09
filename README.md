@@ -10,6 +10,7 @@ A RESTful API server built with [Gin](https://github.com/gin-gonic/gin) and stru
 | [Gin](https://github.com/gin-gonic/gin) | HTTP web framework |
 | [Zerolog](https://github.com/rs/zerolog) | Structured JSON logging |
 | [go-mssqldb](https://github.com/microsoft/go-mssqldb) | Microsoft SQL Server driver |
+| [robfig/cron](https://github.com/robfig/cron) | Background scheduling for worker jobs |
 | [Swaggo](https://github.com/swaggo/swag) | Auto-generated Swagger/OpenAPI docs |
 
 ## Project Structure
@@ -21,7 +22,8 @@ A RESTful API server built with [Gin](https://github.com/gin-gonic/gin) and stru
 │   │   ├── main.go              # Application entrypoint
 │   │   └── Dockerfile           # Multi-stage Docker build (scratch)
 │   └── worker/                  # Background jobs application
-│       └── main.go              # Worker entrypoint
+│       ├── main.go              # Worker entrypoint
+│       └── Dockerfile           # Worker container build
 ├── docs/                        # Auto-generated Swagger documentation
 ├── internal/
 │   ├── errs/                    # Custom HTTP error types
@@ -90,7 +92,7 @@ The server will start on the port specified by `APP_PORT` (default: `8080`).
 |---|---|---|
 | `APP_ENVIRONMENT` | `development`, `test`, `staging`, `production` | `development` |
 | `APP_PORT` | Server listen port (1–65535) | `8080` |
-| `APP_LOG_LEVEL` | Zerolog level: -1=trace, 0=debug … 5=panic | _(empty)_ |
+| `APP_LOG_LEVEL` | Zerolog level: -1=trace, 0=debug … 5=panic | `0` |
 | `APP_ENABLE_SWAGGER` | Enable Swagger UI (`true` / `false`) | `true` |
 | `DB_HOST` | Database host address | `localhost` |
 | `DB_PORT` | Database port | `1433` |

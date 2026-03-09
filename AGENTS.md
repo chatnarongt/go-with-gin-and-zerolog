@@ -12,14 +12,20 @@ This is a Go REST API built with the Gin web framework, Zerolog for structured l
 
 The application is organized into **modules** under `internal/modules/`. Each module is self-contained and exposes a `Module` struct with a `NewModule()` constructor. Modules are wired together in `cmd/api/main.go`.
 
-The initialization order matters:
+The initialization order matters and differs by entrypoint:
 
+`cmd/api/main.go`:
 1. `config` — Loads environment variables
 2. `database` — Opens the SQL Server connection pool (depends on `config`)
 3. `swagger` — Configures Swagger UI (depends on `config`)
 4. `health` — Provides liveness and readiness endpoints (depends on `database`)
-5. `schedule` — Background jobs and cron tasks (depends on `database`)
-6. `application` — Creates the Gin engine, maps routes, and starts the HTTP server (depends on `config`)
+5. `application` — Creates the Gin engine, maps routes, and starts the HTTP server (depends on `config`)
+
+`cmd/worker/main.go`:
+1. `config` — Loads environment variables
+2. `database` — Opens the SQL Server connection pool (depends on `config`)
+3. `schedule` — Starts background jobs and cron tasks (depends on `database`)
+4. `application` — Reuses lifecycle hooks and graceful shutdown handling
 
 ### Route Mapping
 
