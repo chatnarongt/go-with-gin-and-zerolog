@@ -14,15 +14,15 @@ import (
 func main() {
 	cfg := config.NewModule()
 
-	db := database.NewModule(cfg)
+	dbm := database.NewModule(cfg)
 
-	sm := schedule.NewModule(db)
+	scm := schedule.NewModule(dbm)
 
 	app := application.NewModule(cfg)
 
 	app.OnBeforeShutdown(
-		sm.Cleanup,
-		db.Cleanup,
+		scm.Cleanup,
+		dbm.Cleanup,
 	)
 
 	app.ListenAndServe()

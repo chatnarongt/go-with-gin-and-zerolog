@@ -18,19 +18,21 @@ import (
 func main() {
 	cfg := config.NewModule()
 
-	db := database.NewModule(cfg)
+	dbm := database.NewModule(cfg)
 
 	swm := swagger.NewModule(cfg)
 
-	hm := health.NewModule(db.DB)
+	htm := health.NewModule(dbm.DB)
 
 	app := application.NewModule(cfg)
 
 	app.MapRoutes(swm)
 
-	app.MapAPIRoutes(hm)
+	app.MapAPIRoutes(htm)
 
-	app.OnBeforeShutdown(db.Cleanup)
+	app.OnBeforeShutdown(
+		dbm.Cleanup,
+	)
 
 	app.ListenAndServe()
 }
