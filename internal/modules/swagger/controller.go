@@ -10,9 +10,7 @@ import (
 )
 
 func (m *Module) MapRoutes(router *gin.Engine) {
-	appConfig := m.config.LoadAppConfig()
-
-	if appConfig.EnableSwagger {
+	if m.appConfig.EnableSwagger {
 		config := &ginSwagger.Config{
 			URL:                      "/swagger/doc.json",
 			DeepLinking:              true,

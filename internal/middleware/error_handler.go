@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 
 	"github.com/chatnarongt/go-with-gin-and-zerolog/internal/errs"
@@ -15,7 +16,7 @@ func ErrorHandler() gin.HandlerFunc {
 
 		var bodyBytes []byte
 		if req.Body != nil {
-			bodyBytes, _ = io.ReadAll(req.Body)
+			bodyBytes, _ = io.ReadAll(io.LimitReader(req.Body, 5<<20)) // 5 MB Cap
 			req.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 		}
 
@@ -40,7 +41,11 @@ func ErrorHandler() gin.HandlerFunc {
 			event.Str("query", req.URL.RawQuery)
 		}
 		if len(bodyBytes) > 0 {
-			event.RawJSON("body", bodyBytes)
+			if json.Valid(bodyBytes) {
+				event.RawJSON("body", bodyBytes)
+			} else {
+				event.Str("body", string(bodyBytes))
+			}
 		}
 		event.Msg(err.Error())
 	}

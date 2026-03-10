@@ -3,11 +3,11 @@ package swagger
 import "github.com/chatnarongt/go-with-gin-and-zerolog/internal/modules/config"
 
 type Module struct {
-	config *config.Module
+	appConfig *config.AppConfig
 }
 
-func NewModule(config *config.Module) *Module {
+func NewModule(appConfig *config.AppConfig) *Module {
 	return &Module{
-		config: config,
+		appConfig: appConfig,
 	}
 }

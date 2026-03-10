@@ -8,7 +8,7 @@ import (
 )
 
 func (m *Module) CronCheckDbAlive() {
-	m.c.AddFunc("0 * * * *", func() {
+	if _, err := m.c.AddFunc("0 * * * *", func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
@@ -17,5 +17,7 @@ func (m *Module) CronCheckDbAlive() {
 		} else {
 			log.Info().Msg("CronCheckDbAlive: database ping successful")
 		}
-	})
+	}); err != nil {
+		log.Fatal().Err(err).Msg("Failed to register CronCheckDbAlive")
+	}
 }

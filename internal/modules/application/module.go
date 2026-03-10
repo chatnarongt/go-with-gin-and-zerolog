@@ -17,17 +17,14 @@ import (
 )
 
 type Module struct {
-	config            *config.Module
-	appConfig         *config.AppConfig
-	server            *http.Server
-	onBeforeShutdowns []func()
-	engine            *gin.Engine
-	Router            *gin.RouterGroup
+	appConfig        *config.AppConfig
+	server           *http.Server
+	onAfterShutdowns []func()
+	engine           *gin.Engine
+	Router           *gin.RouterGroup
 }
 
-func NewModule(config *config.Module) *Module {
-	appConfig := config.LoadAppConfig()
-
+func NewModule(appConfig *config.AppConfig) *Module {
 	if appConfig.Environment != "development" {
 		gin.SetMode(gin.ReleaseMode)
 	} else {
@@ -45,7 +42,6 @@ func NewModule(config *config.Module) *Module {
 	log.Debug().Msg("Application Module initialized successfully")
 
 	return &Module{
-		config:    config,
 		appConfig: appConfig,
 		server: &http.Server{
 			Addr:    fmt.Sprintf(":%d", appConfig.Port),
@@ -94,15 +90,15 @@ func (m *Module) shutdown() {
 		log.Error().Err(err).Msg("Server shut down error")
 	}
 
-	for _, f := range m.onBeforeShutdowns {
+	for _, f := range m.onAfterShutdowns {
 		f()
 	}
 
 	log.Info().Msg("Server shut down gracefully")
 }
 
-func (m *Module) OnBeforeShutdown(f ...func()) {
-	m.onBeforeShutdowns = append(m.onBeforeShutdowns, f...)
+func (m *Module) OnAfterShutdown(f ...func()) {
+	m.onAfterShutdowns = append(m.onAfterShutdowns, f...)
 }
 
 type RouteMapper interface {
