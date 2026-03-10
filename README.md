@@ -27,7 +27,7 @@ A RESTful API server built with [Gin](https://github.com/gin-gonic/gin) and stru
 ├── docs/                        # Auto-generated Swagger documentation
 ├── internal/
 │   ├── errs/                    # Custom HTTP error types
-│   ├── middleware/               # Gin middleware (error handler)
+│   ├── middleware/              # Gin middleware (error handler)
 │   └── modules/
 │       ├── application/         # HTTP server, routing, graceful shutdown
 │       ├── config/              # Environment-based configuration
