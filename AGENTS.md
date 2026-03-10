@@ -10,7 +10,7 @@ This is a Go REST API built with the Gin web framework, Zerolog for structured l
 
 ### Module System
 
-The application is organized into **modules** under `internal/modules/`. Each module is self-contained and exposes a `Module` struct with a `NewModule()` constructor. Modules are wired together in `cmd/api/main.go`.
+The application is organized into **modules** under `internal/modules/`. Each module is self-contained and exposes a `Module` struct with a `NewModule()` constructor. Modules are wired together in `cmd/api/main.go` (API server) and `cmd/worker/main.go` (background worker).
 
 The initialization order matters and differs by entrypoint:
 
@@ -24,14 +24,15 @@ The initialization order matters and differs by entrypoint:
 `cmd/worker/main.go`:
 1. `config` — Loads environment variables
 2. `database` — Opens the SQL Server connection pool (depends on `config`)
-3. `schedule` — Starts background jobs and cron tasks (depends on `database`)
-4. `application` — Reuses lifecycle hooks and graceful shutdown handling
+3. `health` — Provides liveness and readiness endpoints (depends on `database`)
+4. `schedule` — Starts background jobs and cron tasks (depends on `database`)
+5. `application` — Maps health routes, registers shutdown hooks, and starts the HTTP server (depends on `config`)
 
 ### Route Mapping
 
 - **Root-level routes** (e.g., Swagger UI at `/swagger/*`) are registered via `app.MapRoutes(module)`
 - **API routes** (under `/api/*`) are registered via `app.MapAPIRoutes(module)`
-- Modules that register routes must implement a `MapRoutes(*gin.RouterGroup)` method
+- Modules that register root-level routes must implement `MapRoutes(*gin.Engine)`; modules that register API routes must implement `MapAPIRoutes(*gin.RouterGroup)`
 
 ### Error Handling
 
@@ -41,7 +42,7 @@ Custom HTTP error types are defined in `internal/errs/`. These are used througho
 
 - **Environment configuration**: All configuration values are read from environment variables via helper functions in `internal/modules/config/` (`getEnvAsString`, `getEnvAsInt`, `getEnvAsBool`). Environmental overrides are loaded from `.env.<environment>` files (e.g., `.env.development`, `.env.test`). Never hardcode configuration values.
 - **Logging**: Use `github.com/rs/zerolog/log` for all logging. Use structured fields (e.g., `log.Error().Err(err).Msg("message")`), not `fmt.Printf`.
-- **Graceful shutdown**: The application handles `SIGINT` and `SIGTERM` and runs cleanup functions registered via `app.OnBeforeShutdown()` (e.g., closing the database connection).
+- **Graceful shutdown**: The application handles `SIGINT` and `SIGTERM` and runs cleanup functions registered via `app.OnAfterShutdown()` (e.g., closing the database connection, stopping cron schedulers).
 - **Swagger annotations**: API endpoints are documented using [Swaggo](https://github.com/swaggo/swag) annotations in handler functions. After modifying annotations, run `make swag` to regenerate `docs/`.
 - **Guard Clauses**: Use guard clauses to handle edge cases and errors early, reducing indentation and making the main logic more readable.
 
@@ -77,12 +78,16 @@ make swag api
 
 | File | Purpose |
 |---|---|
-| `cmd/api/main.go` | Application entrypoint and module wiring |
+| `cmd/api/main.go` | API server entrypoint and module wiring |
 | `cmd/worker/main.go` | Background worker entrypoint and module wiring |
-| `cmd/api/Dockerfile` | Multi-stage production Docker build (scratch base) |
+| `cmd/api/Dockerfile` | Multi-stage production Docker build for API (scratch base) |
+| `cmd/worker/Dockerfile` | Multi-stage production Docker build for worker (scratch base) |
 | `internal/modules/application/module.go` | HTTP server lifecycle and graceful shutdown |
 | `internal/modules/config/module.go` | Configuration module |
 | `internal/modules/database/module.go` | Database connection pool setup |
+| `internal/modules/health/module.go` | Health check endpoints (liveness & readiness) |
+| `internal/modules/schedule/module.go` | Cron job scheduler for background tasks |
+| `internal/modules/swagger/module.go` | Swagger UI controller |
 | `internal/middleware/error_handler.go` | Centralized Gin error handling middleware |
 | `.env.example` | Reference for all environment variables |
 | `Makefile` | Development commands |
@@ -106,9 +111,9 @@ make test
 
 1. Create a new directory under `internal/modules/<module_name>/`
 2. Create a `module.go` with a `Module` struct and `NewModule()` constructor
-3. If the module has HTTP endpoints, add handler files and implement `MapRoutes(router *gin.RouterGroup)`
-4. Wire the module in `cmd/api/main.go`:
+3. If the module has HTTP endpoints, add handler files and implement `MapRoutes(engine *gin.Engine)` for root-level routes or `MapAPIRoutes(router *gin.RouterGroup)` for API routes
+4. Wire the module in `cmd/api/main.go` and/or `cmd/worker/main.go`:
    - Initialize it with `NewModule()`
-   - Register routes with `app.MapRoutes()` or `app.MapAPIRoutes()`
-5. If the module needs cleanup on shutdown, register it with `app.OnBeforeShutdown()`
-6. Update Swagger annotations and run `make swag` if new endpoints were added
+   - Register routes with `app.MapRoutes()` (root-level) or `app.MapAPIRoutes()` (under `/api`)
+5. If the module needs cleanup on shutdown, register it with `app.OnAfterShutdown()`
+6. Update Swagger annotations and run `make swag api` if new endpoints were added

@@ -115,13 +115,16 @@ Environment files are loaded in this order (later files override earlier files):
 
 ## Docker
 
-Build and run the container:
+Build and run the containers:
 
 ```bash
-# Build the image
+# Build the API image
 docker build -f cmd/api/Dockerfile -t go-with-gin-and-zerolog .
 
-# Run the container
+# Build the worker image
+docker build -f cmd/worker/Dockerfile -t go-with-gin-and-zerolog-worker .
+
+# Run the API container
 docker run -p 8080:8080 \
   -e APP_ENVIRONMENT=production \
   -e DB_HOST=host.docker.internal \

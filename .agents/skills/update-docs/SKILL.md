@@ -32,7 +32,7 @@ Edit `AGENTS.md` to ensure future AI agents have accurate context about the arch
 - **Key Files**: Update the table with any new fundamental components (e.g., a new core middleware file).
 
 ### 4. Update This Skill (`SKILL.md`)
-Edit `.agents/skills/update_docs/SKILL.md` if the workflow needs to be adapted.
+Edit `.agents/skills/update-docs/SKILL.md` if the workflow needs to be adapted.
 - **New Documentation Files**: If new core organizational documentation files are introduced (like a `CONTRIBUTING.md`), update this workflow so future agents know to keep them in sync.
 - **Architecture Shifts**: If the project significantly changes how things are wired, update the "Analyze Recent Changes" steps with new instructions.
 
