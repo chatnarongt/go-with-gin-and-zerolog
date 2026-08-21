@@ -10,11 +10,12 @@ import (
 )
 
 type ApplicationConfig struct {
-	Port            int           `validate:"min=1,max=65535"`
-	LogLevel        zerolog.Level `validate:"min=-1,max=5"`
-	DebugMode       bool          `validate:"-"`
-	SwaggerEnabled  bool          `validate:"-"`
-	SwaggerBasePath string        `validate:"-"`
+	Port             int           `validate:"min=1,max=65535"`
+	LogLevel         zerolog.Level `validate:"min=-1,max=5"`
+	DebugMode        bool          `validate:"-"`
+	SwaggerEnabled   bool          `validate:"-"`
+	SwaggerBasePath  string        `validate:"-"`
+	SwaggerServerURL string        `validate:"-"`
 }
 
 func parseApplicationConfig(values map[string]string) (ApplicationConfig, error) {
@@ -24,6 +25,10 @@ func parseApplicationConfig(values map[string]string) (ApplicationConfig, error)
 		DebugMode:       false,
 		SwaggerEnabled:  false,
 		SwaggerBasePath: "/swagger",
+	}
+
+	if raw, ok := values["APP_SWAGGER_SERVER_URL"]; ok {
+		config.SwaggerServerURL = strings.TrimSpace(raw)
 	}
 
 	if raw, ok := values["APP_PORT"]; ok {

@@ -57,6 +57,11 @@ func (m *Module) Register(i do.Injector, router *gin.Engine) error {
 	spec.Info.Title = m.options.Title
 	spec.Info.Version = m.options.Version
 	spec.Info.Description = m.options.Description
+	if applicationConfig.SwaggerServerURL != "" {
+		spec.Servers = openapi3.Servers{
+			{URL: applicationConfig.SwaggerServerURL},
+		}
+	}
 
 	specJSON, err := json.Marshal(spec)
 	if err != nil {
@@ -72,6 +77,10 @@ func (m *Module) Register(i do.Injector, router *gin.Engine) error {
 		Title:       m.options.Title,
 		SwaggerJSON: "/openapi.json",
 		BasePath:    basePath,
+		SettingsUI: map[string]string{
+			"defaultModelsExpandDepth": "1",
+			"defaultModelExpandDepth":  "1",
+		},
 	})
 	router.GET(basePath, gin.WrapH(ui))
 	router.GET(basePath+"/*any", gin.WrapH(ui))

@@ -6,18 +6,18 @@ info:
 servers:
   - url: /
 tags:
-  - name: probes
+  - name: Probes
 paths:
   /probe/liveness:
     get:
       operationId: getLiveness
       tags:
-        - probes
+        - Probes
       responses:
         '200':
           description: Service is alive.
           content:
-            application/json:
+            text/plain; charset=utf-8:
               schema:
                 type: string
                 enum:
@@ -26,7 +26,7 @@ paths:
     get:
       operationId: getReadiness
       tags:
-        - probes
+        - Probes
       responses:
         '200':
           description: All dependencies are ready.
@@ -40,6 +40,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GetReadinessResponseBody'
+              example:
+                database: NOT_READY
+                service1: OK
+                service2: OK
 components:
   schemas:
     GetReadinessResponseBody:
