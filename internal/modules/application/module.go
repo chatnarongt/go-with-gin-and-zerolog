@@ -86,7 +86,7 @@ func (m *Module) StartContext(ctx context.Context) error {
 
 	router := gin.New()
 	router.Use(
-		gin.Recovery(),
+		middleware.ErrorHandler(),
 		middleware.RequestID(),
 		middleware.AccessLog(func() *zerolog.Logger {
 			return do.MustInvoke[*zerolog.Logger](injector)

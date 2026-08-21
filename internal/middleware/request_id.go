@@ -4,8 +4,8 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
-	"net/http"
 
+	"github.com/chatnarongt/go-with-gin-and-zerolog/internal/errs"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,7 +17,8 @@ func RequestID() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		requestID, err := newRequestID()
 		if err != nil {
-			c.AbortWithStatus(http.StatusInternalServerError)
+			response := errs.InternalServerError().Response()
+			c.AbortWithStatusJSON(response.Status, response)
 			return
 		}
 

@@ -4,7 +4,7 @@ Todos:
   API:
     ✔ Setup project structure and initialize repository
     ✔ Setup swagger for API documentation
-    ☐ Custom error handling middleware
+    ✔ Custom error handling middleware
     ☐ Implement authentication and authorization
     ☐ Compression middleware for API responses
     ☐ Cors middleware for API responses
