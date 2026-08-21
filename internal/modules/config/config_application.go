@@ -10,6 +10,7 @@ import (
 )
 
 type ApplicationConfig struct {
+	Environment      string        `validate:"oneof=development staging production"`
 	Port             int           `validate:"min=1,max=65535"`
 	LogLevel         zerolog.Level `validate:"min=-1,max=5"`
 	DebugMode        bool          `validate:"-"`
@@ -20,6 +21,7 @@ type ApplicationConfig struct {
 
 func parseApplicationConfig(values map[string]string) (ApplicationConfig, error) {
 	config := ApplicationConfig{
+		Environment:     "development",
 		Port:            8080,
 		LogLevel:        zerolog.InfoLevel,
 		DebugMode:       false,
@@ -27,8 +29,8 @@ func parseApplicationConfig(values map[string]string) (ApplicationConfig, error)
 		SwaggerBasePath: "/swagger",
 	}
 
-	if raw, ok := values["APP_SWAGGER_SERVER_URL"]; ok {
-		config.SwaggerServerURL = strings.TrimSpace(raw)
+	if raw, ok := values["APP_ENV"]; ok {
+		config.Environment = strings.TrimSpace(raw)
 	}
 
 	if raw, ok := values["APP_PORT"]; ok {
@@ -69,6 +71,10 @@ func parseApplicationConfig(values map[string]string) (ApplicationConfig, error)
 			return ApplicationConfig{}, fmt.Errorf("invalid APP_SWAGGER_BASE_PATH %q: must be an absolute path", raw)
 		}
 		config.SwaggerBasePath = basePath
+	}
+
+	if raw, ok := values["APP_SWAGGER_SERVER_URL"]; ok {
+		config.SwaggerServerURL = strings.TrimSpace(raw)
 	}
 
 	if err := validator.New().Struct(config); err != nil {
