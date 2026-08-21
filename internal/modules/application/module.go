@@ -4,9 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
+	"sort"
+	"strings"
 	"syscall"
 	"time"
 
@@ -104,12 +107,33 @@ func (m *Module) StartContext(ctx context.Context) error {
 		Handler: router,
 	}
 
+	listener, err := net.Listen("tcp", server.Addr)
+	if err != nil {
+		log.Error().Err(err).Msg("Start HTTP server")
+		return err
+	}
+
 	serverErr := make(chan error, 1)
 	go func() {
-		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err := server.Serve(listener); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			serverErr <- err
 		}
 	}()
+
+	path := ""
+	if config.Application.SwaggerEnabled {
+		path = config.Application.SwaggerBasePath
+	}
+	urls := []string{fmt.Sprintf("Local: http://localhost:%d%s", config.Application.Port, path)}
+	for _, address := range networkAddresses() {
+		urls = append(urls, fmt.Sprintf("Network%d: http://%s", len(urls), net.JoinHostPort(address, fmt.Sprintf("%d", config.Application.Port))+path))
+	}
+	separatorWidth := 0
+	for _, url := range urls {
+		separatorWidth = max(separatorWidth, len(url))
+	}
+	separator := strings.Repeat("=", separatorWidth)
+	log.Info().Msgf("Application is running.\n\nURLs:\n%s\n%s\n%s\nPress ctrl+c stop server\n", separator, strings.Join(urls, "\n"), separator)
 
 	select {
 	case err := <-serverErr:
@@ -132,6 +156,38 @@ func (m *Module) StartContext(ctx context.Context) error {
 	}
 	log.Info().Msg("Application shut down successfully")
 	return nil
+}
+
+func networkAddresses() []string {
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return nil
+	}
+
+	addresses := make(map[string]struct{})
+	for _, iface := range interfaces {
+		if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 {
+			continue
+		}
+		ifaceAddresses, err := iface.Addrs()
+		if err != nil {
+			continue
+		}
+		for _, address := range ifaceAddresses {
+			ip, _, err := net.ParseCIDR(address.String())
+			if err != nil || ip.IsLoopback() {
+				continue
+			}
+			addresses[ip.String()] = struct{}{}
+		}
+	}
+
+	result := make([]string, 0, len(addresses))
+	for address := range addresses {
+		result = append(result, address)
+	}
+	sort.Strings(result)
+	return result
 }
 
 func (m *Module) registerCore(i do.Injector) error {
