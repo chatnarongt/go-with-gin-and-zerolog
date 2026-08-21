@@ -2,6 +2,8 @@ package probe
 
 import (
 	"github.com/gin-gonic/gin"
+
+	"github.com/chatnarongt/go-with-gin-and-zerolog/internal"
 	"github.com/rs/zerolog"
 	"github.com/samber/do/v2"
 )
@@ -10,6 +12,8 @@ type Module struct {
 	service *Service
 	logger  *zerolog.Logger
 }
+
+var _ internal.Module = (*Module)(nil)
 
 func NewModule() *Module {
 	return &Module{}

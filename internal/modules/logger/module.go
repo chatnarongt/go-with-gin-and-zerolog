@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/samber/do/v2"
 
+	"github.com/chatnarongt/go-with-gin-and-zerolog/internal"
 	"github.com/chatnarongt/go-with-gin-and-zerolog/internal/modules/config"
 )
 
@@ -22,6 +23,8 @@ type Module struct {
 	hooks  []zerolog.Hook
 	logger *zerolog.Logger
 }
+
+var _ internal.Module = (*Module)(nil)
 
 func NewModule(options ModuleOptions) *Module {
 	return &Module{hooks: options.Hooks}

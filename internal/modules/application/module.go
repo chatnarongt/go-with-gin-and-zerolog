@@ -37,6 +37,8 @@ type Module struct {
 	imports []internal.Module
 }
 
+var _ internal.Module = (*Module)(nil)
+
 func NewModule(options ModuleOptions) *Module {
 	return &Module{
 		config:  config.NewModule(options.Config),

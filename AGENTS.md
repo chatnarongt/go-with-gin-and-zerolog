@@ -19,7 +19,7 @@ go test ./internal/modules/application
 go test ./internal/modules/application -run TestName -v
 ```
 
-The API runs on `APP_PORT` (default `8080`). Configuration loads the env files passed by the command, then process environment variables override file values. The API command currently passes `.env` and `cmd/api/.env`; both paths must be readable because the loader returns an error for a missing file. `APP_LOG_LEVEL` defaults to zerolog `info` and accepts values `-1` through `5`. Other supported settings include `APP_DEBUG_MODE`, `DATABASE_DSN`, `DATABASE_MAX_OPEN_CONNS`, `DATABASE_MAX_IDLE_CONNS`, `DATABASE_MAX_LIFETIME`, and `DATABASE_MAX_IDLE_TIME`. The last two use Go duration strings; `0` means unlimited.
+The API runs on `APP_PORT` (default `8080`). Configuration loads the env files passed by the command, then process environment variables override file values. The API command currently passes `.env` and `cmd/api/.env`; both paths must be readable because the loader returns an error for a missing file. `APP_LOG_LEVEL` defaults to zerolog `info` and accepts values `-1` through `5`. Other supported settings include `APP_DEBUG_MODE`, `APP_SWAGGER_ENABLED` (default `false`; enables `/openapi.json` and Swagger UI), `APP_SWAGGER_BASE_PATH` (default `/swagger`), `DATABASE_DSN`, `DATABASE_MAX_OPEN_CONNS`, `DATABASE_MAX_IDLE_CONNS`, `DATABASE_MAX_LIFETIME`, and `DATABASE_MAX_IDLE_TIME`. The last two use Go duration strings; `0` means unlimited.
 
 Useful local checks after starting the API:
 

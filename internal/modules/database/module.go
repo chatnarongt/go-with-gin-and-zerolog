@@ -14,6 +14,7 @@ import (
 	"github.com/samber/do/v2"
 	_ "modernc.org/sqlite"
 
+	"github.com/chatnarongt/go-with-gin-and-zerolog/internal"
 	"github.com/chatnarongt/go-with-gin-and-zerolog/internal/modules/config"
 )
 
@@ -23,6 +24,8 @@ type Module struct {
 	db     *sql.DB
 	logger *zerolog.Logger
 }
+
+var _ internal.Module = (*Module)(nil)
 
 func NewModule() *Module {
 	return &Module{}

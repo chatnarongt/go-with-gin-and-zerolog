@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+
+	"github.com/chatnarongt/go-with-gin-and-zerolog/internal"
 	"github.com/rs/zerolog"
 	"github.com/samber/do/v2"
 )
@@ -22,6 +24,8 @@ type Module struct {
 	envFiles []string
 	logger   *zerolog.Logger
 }
+
+var _ internal.Module = (*Module)(nil)
 
 func NewModule(options ModuleOptions) *Module {
 	return &Module{envFiles: options.EnvFiles}
