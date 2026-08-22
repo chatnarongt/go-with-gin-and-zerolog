@@ -26,15 +26,22 @@ func TestDatabaseModule_SQLite(t *testing.T) {
 			Main: config.DatabaseConnectionConfig{
 				Driver:       "sqlite",
 				DSN:          "file:./data/test_main.db",
+				Required:     true,
 				MaxOpenConns: 2,
 				MaxIdleConns: 1,
 			},
 			Analytics: config.DatabaseConnectionConfig{
 				Driver:       "sqlite",
 				DSN:          "file:./data/test_analytics.db",
+				Required:     true,
 				ReadOnly:     true,
 				MaxOpenConns: 2,
 				MaxIdleConns: 1,
+			},
+			Logging: config.DatabaseConnectionConfig{
+				Driver:   "mongodb",
+				DSN:      "",
+				Required: false,
 			},
 		},
 	}
@@ -45,8 +52,8 @@ func TestDatabaseModule_SQLite(t *testing.T) {
 		t.Fatalf("register database module: %v", err)
 	}
 
-	dbs := do.MustInvoke[*database.Databases](injector)
-	if dbs.Main == nil || dbs.Analytics == nil {
+	db := do.MustInvoke[*database.Databases](injector)
+	if db.Main == nil || db.Analytics == nil {
 		t.Fatal("expected Main and Analytics DB connections to be non-nil")
 	}
 
@@ -55,16 +62,51 @@ func TestDatabaseModule_SQLite(t *testing.T) {
 	}
 
 	// Verify Main connection write
-	if _, err := dbs.Main.Exec("CREATE TABLE test (id INTEGER PRIMARY KEY);"); err != nil {
+	if _, err := db.Main.Exec("CREATE TABLE test (id INTEGER PRIMARY KEY);"); err != nil {
 		t.Fatalf("failed to exec on main db: %v", err)
 	}
 
 	// Verify Analytics read-only rejection on write
-	if _, err := dbs.Analytics.Exec("CREATE TABLE test (id INTEGER PRIMARY KEY);"); err == nil {
+	if _, err := db.Analytics.Exec("CREATE TABLE test (id INTEGER PRIMARY KEY);"); err == nil {
 		t.Fatal("expected write operation on read-only analytics DB to fail")
 	}
 
 	if err := dbModule.OnModuleDestroy(context.Background()); err != nil {
 		t.Fatalf("destroy database module: %v", err)
+	}
+}
+
+func TestDatabaseModule_MongoMissingDatabaseFails(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	injector := do.New()
+	nopLogger := zerolog.Nop()
+	do.ProvideValue(injector, &nopLogger)
+
+	cfg := &config.Config{
+		Databases: config.DatabasesConfig{
+			Main: config.DatabaseConnectionConfig{
+				Driver: "sqlite",
+				DSN:    "file:./data/test_main_fail.db",
+			},
+			Analytics: config.DatabaseConnectionConfig{
+				Driver: "sqlite",
+				DSN:    "file:./data/test_analytics_fail.db",
+			},
+			Logging: config.DatabaseConnectionConfig{
+				Driver:   "mongodb",
+				DSN:      "mongodb://localhost:27017",
+				Required: true,
+			},
+		},
+	}
+	defer os.Remove("./data/test_main_fail.db")
+	defer os.Remove("./data/test_analytics_fail.db")
+
+	do.ProvideValue(injector, cfg)
+
+	dbModule := database.NewModule()
+	if err := dbModule.Register(injector, nil); err == nil {
+		t.Fatal("expected register to fail when required MongoDB DSN has no database name")
 	}
 }

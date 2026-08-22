@@ -14,11 +14,14 @@ const (
 	defaultMainDatabaseDSN         = "file:./data/app.db"
 	defaultAnalyticsDatabaseDriver = "sqlite"
 	defaultAnalyticsDatabaseDSN    = "file:./data/analytics.db"
+	defaultLoggingDatabaseDriver   = "mongodb"
+	defaultLoggingDatabaseDSN      = "mongodb://localhost:27017/logs"
 )
 
 type DatabaseConnectionConfig struct {
-	Driver          string        `validate:"required,oneof=sqlite postgres pgx sqlserver mssql"`
+	Driver          string        `validate:"required,oneof=sqlite postgres pgx sqlserver mssql mongodb mongo"`
 	DSN             string        `validate:"required"`
+	Required        bool          `validate:"-"`
 	ReadOnly        bool          `validate:"-"`
 	MaxOpenConns    int           `validate:"min=0"`
 	MaxIdleConns    int           `validate:"min=0"`
@@ -29,12 +32,14 @@ type DatabaseConnectionConfig struct {
 type DatabasesConfig struct {
 	Main      DatabaseConnectionConfig
 	Analytics DatabaseConnectionConfig
+	Logging   DatabaseConnectionConfig
 }
 
-func parseDatabaseConnection(prefix, defaultDriver, defaultDSN string, values map[string]string) (DatabaseConnectionConfig, error) {
+func parseDatabaseConnection(prefix, defaultDriver, defaultDSN string, defaultRequired bool, values map[string]string) (DatabaseConnectionConfig, error) {
 	config := DatabaseConnectionConfig{
 		Driver:          defaultDriver,
 		DSN:             defaultDSN,
+		Required:        defaultRequired,
 		ReadOnly:        false,
 		MaxOpenConns:    0,
 		MaxIdleConns:    2,
@@ -48,6 +53,14 @@ func parseDatabaseConnection(prefix, defaultDriver, defaultDSN string, values ma
 
 	if raw, ok := values[prefix+"_DSN"]; ok {
 		config.DSN = strings.TrimSpace(raw)
+	}
+
+	if raw, ok := values[prefix+"_REQUIRED"]; ok {
+		required, err := strconv.ParseBool(raw)
+		if err != nil {
+			return DatabaseConnectionConfig{}, fmt.Errorf("invalid %s_REQUIRED %q: %w", prefix, raw, err)
+		}
+		config.Required = required
 	}
 
 	if raw, ok := values[prefix+"_READ_ONLY"]; ok {
@@ -98,12 +111,17 @@ func parseDatabaseConnection(prefix, defaultDriver, defaultDSN string, values ma
 }
 
 func parseDatabasesConfig(values map[string]string) (DatabasesConfig, error) {
-	mainConfig, err := parseDatabaseConnection("DB_MAIN", defaultMainDatabaseDriver, defaultMainDatabaseDSN, values)
+	mainConfig, err := parseDatabaseConnection("DB_MAIN", defaultMainDatabaseDriver, defaultMainDatabaseDSN, true, values)
 	if err != nil {
 		return DatabasesConfig{}, err
 	}
 
-	analyticsConfig, err := parseDatabaseConnection("DB_ANALYTICS", defaultAnalyticsDatabaseDriver, defaultAnalyticsDatabaseDSN, values)
+	analyticsConfig, err := parseDatabaseConnection("DB_ANALYTICS", defaultAnalyticsDatabaseDriver, defaultAnalyticsDatabaseDSN, true, values)
+	if err != nil {
+		return DatabasesConfig{}, err
+	}
+
+	loggingConfig, err := parseDatabaseConnection("DB_LOGGING", defaultLoggingDatabaseDriver, defaultLoggingDatabaseDSN, false, values)
 	if err != nil {
 		return DatabasesConfig{}, err
 	}
@@ -111,5 +129,6 @@ func parseDatabasesConfig(values map[string]string) (DatabasesConfig, error) {
 	return DatabasesConfig{
 		Main:      mainConfig,
 		Analytics: analyticsConfig,
+		Logging:   loggingConfig,
 	}, nil
 }

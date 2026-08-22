@@ -43,6 +43,7 @@ paths:
               example:
                 databaseMain: NOT_READY
                 databaseAnalytics: OK
+                databaseLogging: NOT_READY
                 service1: OK
                 service2: OK
 components:
@@ -52,12 +53,15 @@ components:
       required:
         - databaseMain
         - databaseAnalytics
+        - databaseLogging
         - service1
         - service2
       properties:
         databaseMain:
           $ref: '#/components/schemas/ReadinessStatus'
         databaseAnalytics:
+          $ref: '#/components/schemas/ReadinessStatus'
+        databaseLogging:
           $ref: '#/components/schemas/ReadinessStatus'
         service1:
           $ref: '#/components/schemas/ReadinessStatus'

@@ -8,13 +8,13 @@ import (
 
 type Service struct {
 	log *zerolog.Logger
-	dbs *database.Databases
+	db  *database.Databases
 }
 
 func NewService(i do.Injector) (*Service, error) {
 	return &Service{
 		log: do.MustInvoke[*zerolog.Logger](i),
-		dbs: do.MustInvoke[*database.Databases](i),
+		db:  do.MustInvoke[*database.Databases](i),
 	}, nil
 }
 

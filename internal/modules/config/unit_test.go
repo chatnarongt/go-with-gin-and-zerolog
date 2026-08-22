@@ -34,6 +34,9 @@ func TestConfigModule_Databases(t *testing.T) {
 	if cfg.Databases.Analytics.DSN != "file:./data/analytics.db" {
 		t.Errorf("expected analytics default dsn file:./data/analytics.db, got %s", cfg.Databases.Analytics.DSN)
 	}
+	if cfg.Databases.Main.Required != true {
+		t.Errorf("expected default required true, got false")
+	}
 	if cfg.Databases.Main.ReadOnly != false {
 		t.Errorf("expected default read_only false, got true")
 	}
@@ -45,5 +48,15 @@ func TestConfigModule_Databases(t *testing.T) {
 	}
 	if cfg.Databases.Main.ConnMaxIdleTime != 0 {
 		t.Errorf("expected default idle time 0, got %v", cfg.Databases.Main.ConnMaxIdleTime)
+	}
+
+	if cfg.Databases.Logging.Driver != "mongodb" {
+		t.Errorf("expected logging default driver mongodb, got %s", cfg.Databases.Logging.Driver)
+	}
+	if cfg.Databases.Logging.DSN != "mongodb://localhost:27017/logs" {
+		t.Errorf("expected logging default dsn mongodb://localhost:27017/logs, got %s", cfg.Databases.Logging.DSN)
+	}
+	if cfg.Databases.Logging.Required != false {
+		t.Errorf("expected logging default required false, got true")
 	}
 }

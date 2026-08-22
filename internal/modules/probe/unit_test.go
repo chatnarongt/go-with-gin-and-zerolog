@@ -34,6 +34,11 @@ func TestProbeReadiness_CamelCaseResponse(t *testing.T) {
 				Driver: "sqlite",
 				DSN:    "file:./data/test_probe_analytics.db",
 			},
+			Logging: config.DatabaseConnectionConfig{
+				Driver:   "mongodb",
+				DSN:      "",
+				Required: false,
+			},
 		},
 	}
 	do.ProvideValue(injector, cfg)
@@ -67,5 +72,8 @@ func TestProbeReadiness_CamelCaseResponse(t *testing.T) {
 	}
 	if res["databaseAnalytics"] != "OK" {
 		t.Errorf("expected databaseAnalytics=OK, got %v", res["databaseAnalytics"])
+	}
+	if res["databaseLogging"] != "NOT_READY" {
+		t.Errorf("expected databaseLogging=NOT_READY, got %v", res["databaseLogging"])
 	}
 }
