@@ -23,16 +23,13 @@ func TestErrorHandler(t *testing.T) {
 		{
 			name: "custom error",
 			handler: func(c *gin.Context) {
-				_ = c.Error(errs.BadRequest("Invalid request body.", errs.Detail{
-					Path:    "name",
-					Message: "This field is required.",
-				}))
+				_ = c.Error(errs.BadRequest("Invalid request body.", "name: This field is required."))
 			},
 			expected: errs.Response{
 				Status:  http.StatusBadRequest,
 				Code:    errs.CodeBadRequest,
 				Message: "Invalid request body.",
-				Errors:  []errs.Detail{{Path: "name", Message: "This field is required."}},
+				Errors:  []string{"name: This field is required."},
 			},
 			statusCode: http.StatusBadRequest,
 		},

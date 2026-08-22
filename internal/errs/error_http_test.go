@@ -14,6 +14,13 @@ func TestResponseFor(t *testing.T) {
 	validationErr := validate.Struct(struct {
 		Email string `validate:"required,email"`
 	}{}).(validator.ValidationErrors)
+	type person struct {
+		Email string `validate:"required,email"`
+	}
+	type request struct {
+		Person person
+	}
+	nestedValidationErr := validate.Struct(request{}).(validator.ValidationErrors)
 
 	tests := []struct {
 		name     string
@@ -22,12 +29,12 @@ func TestResponseFor(t *testing.T) {
 	}{
 		{
 			name: "custom error",
-			err:  BadRequest("Invalid request body.", Detail{Path: "name", Message: "This field is required."}),
+			err:  BadRequest("Invalid request body.", "name: This field is required."),
 			expected: Response{
 				Status:  http.StatusBadRequest,
 				Code:    CodeBadRequest,
 				Message: "Invalid request body.",
-				Errors:  []Detail{{Path: "name", Message: "This field is required."}},
+				Errors:  []string{"name: This field is required."},
 			},
 		},
 		{
@@ -37,7 +44,17 @@ func TestResponseFor(t *testing.T) {
 				Status:  http.StatusBadRequest,
 				Code:    CodeBadRequest,
 				Message: "Invalid request body.",
-				Errors:  []Detail{{Path: "email", Message: "This field is required."}},
+				Errors:  []string{"email: This field is required."},
+			},
+		},
+		{
+			name: "nested validation error",
+			err:  nestedValidationErr,
+			expected: Response{
+				Status:  http.StatusBadRequest,
+				Code:    CodeBadRequest,
+				Message: "Invalid request body.",
+				Errors:  []string{"person.email: This field is required."},
 			},
 		},
 		{
@@ -47,7 +64,7 @@ func TestResponseFor(t *testing.T) {
 				Status:  http.StatusBadRequest,
 				Code:    CodeBadRequest,
 				Message: "Invalid request body.",
-				Errors:  []Detail{{Path: "", Message: "Malformed JSON."}},
+				Errors:  []string{"Malformed JSON."},
 			},
 		},
 		{
@@ -79,13 +96,45 @@ func TestResponseFor(t *testing.T) {
 	}
 }
 
-func TestResponseJSONOmitsErrorsWhenEmpty(t *testing.T) {
+func TestHTTPErrorConstructors(t *testing.T) {
+	tests := []struct {
+		name       string
+		newError   func(string, ...string) *Error
+		statusCode int
+		code       string
+	}{
+		{"unauthorized", Unauthorized, http.StatusUnauthorized, CodeUnauthorized},
+		{"forbidden", Forbidden, http.StatusForbidden, CodeForbidden},
+		{"not found", NotFound, http.StatusNotFound, CodeNotFound},
+		{"method not allowed", MethodNotAllowed, http.StatusMethodNotAllowed, CodeMethodNotAllowed},
+		{"not implemented", NotImplemented, http.StatusNotImplemented, CodeNotImplemented},
+		{"bad gateway", BadGateway, http.StatusBadGateway, CodeBadGateway},
+		{"service unavailable", ServiceUnavailable, http.StatusServiceUnavailable, CodeServiceUnavailable},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			response := tt.newError("Request failed.").Response()
+			if response.Status != tt.statusCode || response.Code != tt.code {
+				t.Fatalf("response = %#v, want status %d code %q", response, tt.statusCode, tt.code)
+			}
+		})
+	}
+}
+
+func TestResponseJSONIncludesNullErrorsWhenEmpty(t *testing.T) {
 	body, err := json.Marshal(InternalServerError().Response())
 	if err != nil {
 		t.Fatal(err)
 	}
-	if string(body) != `{"status":500,"code":"INTERNAL_SERVER_ERROR","message":"Internal server error."}` {
+	if string(body) != `{"status":500,"code":"INTERNAL_SERVER_ERROR","message":"Internal server error.","errors":null}` {
 		t.Fatalf("JSON = %s", body)
+	}
+}
+
+func TestNewDropsEmptyErrors(t *testing.T) {
+	if got := New(http.StatusBadRequest, CodeBadRequest, "Invalid request.", "", "").Response().Errors; got != nil {
+		t.Fatalf("errors = %#v, want nil", got)
 	}
 }
 

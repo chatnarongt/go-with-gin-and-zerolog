@@ -14,19 +14,21 @@ import (
 
 const (
 	CodeBadRequest          = "BAD_REQUEST"
+	CodeUnauthorized        = "UNAUTHORIZED"
+	CodeForbidden           = "FORBIDDEN"
+	CodeNotFound            = "NOT_FOUND"
+	CodeMethodNotAllowed    = "METHOD_NOT_ALLOWED"
+	CodeNotImplemented      = "NOT_IMPLEMENTED"
 	CodeInternalServerError = "INTERNAL_SERVER_ERROR"
+	CodeBadGateway          = "BAD_GATEWAY"
+	CodeServiceUnavailable  = "SERVICE_UNAVAILABLE"
 )
-
-type Detail struct {
-	Path    string `json:"path"`
-	Message string `json:"message"`
-}
 
 type Response struct {
 	Status  int      `json:"status"`
 	Code    string   `json:"code"`
 	Message string   `json:"message"`
-	Errors  []Detail `json:"errors,omitempty"`
+	Errors  []string `json:"errors"`
 }
 
 type Error struct {
@@ -34,25 +36,53 @@ type Error struct {
 	cause    error
 }
 
-func New(status int, code, message string, details ...Detail) *Error {
+func New(status int, code, message string, responseErrors ...string) *Error {
 	return &Error{
 		response: Response{
 			Status:  status,
 			Code:    code,
 			Message: message,
-			Errors:  details,
+			Errors:  nonEmpty(responseErrors),
 		},
 	}
 }
 
-func Wrap(cause error, status int, code, message string, details ...Detail) *Error {
-	httpError := New(status, code, message, details...)
+func Wrap(cause error, status int, code, message string, responseErrors ...string) *Error {
+	httpError := New(status, code, message, responseErrors...)
 	httpError.cause = cause
 	return httpError
 }
 
-func BadRequest(message string, details ...Detail) *Error {
-	return New(http.StatusBadRequest, CodeBadRequest, message, details...)
+func BadRequest(message string, responseErrors ...string) *Error {
+	return New(http.StatusBadRequest, CodeBadRequest, message, responseErrors...)
+}
+
+func Unauthorized(message string, responseErrors ...string) *Error {
+	return New(http.StatusUnauthorized, CodeUnauthorized, message, responseErrors...)
+}
+
+func Forbidden(message string, responseErrors ...string) *Error {
+	return New(http.StatusForbidden, CodeForbidden, message, responseErrors...)
+}
+
+func NotFound(message string, responseErrors ...string) *Error {
+	return New(http.StatusNotFound, CodeNotFound, message, responseErrors...)
+}
+
+func MethodNotAllowed(message string, responseErrors ...string) *Error {
+	return New(http.StatusMethodNotAllowed, CodeMethodNotAllowed, message, responseErrors...)
+}
+
+func NotImplemented(message string, responseErrors ...string) *Error {
+	return New(http.StatusNotImplemented, CodeNotImplemented, message, responseErrors...)
+}
+
+func BadGateway(message string, responseErrors ...string) *Error {
+	return New(http.StatusBadGateway, CodeBadGateway, message, responseErrors...)
+}
+
+func ServiceUnavailable(message string, responseErrors ...string) *Error {
+	return New(http.StatusServiceUnavailable, CodeServiceUnavailable, message, responseErrors...)
 }
 
 func InternalServerError() *Error {
@@ -69,7 +99,7 @@ func (e *Error) Unwrap() error {
 
 func (e *Error) Response() Response {
 	response := e.response
-	response.Errors = append([]Detail(nil), e.response.Errors...)
+	response.Errors = append([]string(nil), e.response.Errors...)
 	return response
 }
 
@@ -89,46 +119,42 @@ func ResponseFor(err error) Response {
 	}
 
 	if errors.Is(err, io.EOF) {
-		return BadRequest("Invalid request body.", Detail{
-			Path:    "",
-			Message: "Request body is required.",
-		}).Response()
+		return invalidBodyError("", "Request body is required.").Response()
 	}
 
 	var syntaxError *json.SyntaxError
 	if errors.As(err, &syntaxError) {
-		return BadRequest("Invalid request body.", Detail{
-			Path:    "",
-			Message: "Malformed JSON.",
-		}).Response()
+		return invalidBodyError("", "Malformed JSON.").Response()
 	}
 
 	var typeError *json.UnmarshalTypeError
 	if errors.As(err, &typeError) {
-		return BadRequest("Invalid request body.", Detail{
-			Path:    lowerCamel(typeError.Field),
-			Message: "Invalid value.",
-		}).Response()
+		return invalidBodyError(lowerCamel(typeError.Field), "Invalid value.").Response()
 	}
 
 	var maxBytesError *http.MaxBytesError
 	if errors.As(err, &maxBytesError) {
-		return BadRequest("Invalid request body.", Detail{
-			Path:    "",
-			Message: "Request body is too large.",
-		}).Response()
+		return invalidBodyError("", "Request body is too large.").Response()
 	}
 
 	return InternalServerError().Response()
 }
 
-func validationDetails(validationErrors validator.ValidationErrors) []Detail {
-	details := make([]Detail, 0, len(validationErrors))
+func invalidBody(message string) *Error {
+	return BadRequest("Invalid request body.", message)
+}
+
+func invalidBodyError(path, message string) *Error {
+	if path == "" {
+		return invalidBody(message)
+	}
+	return invalidBody(fmt.Sprintf("%s: %s", path, message))
+}
+
+func validationDetails(validationErrors validator.ValidationErrors) []string {
+	details := make([]string, 0, len(validationErrors))
 	for _, validationError := range validationErrors {
-		details = append(details, Detail{
-			Path:    fieldPath(validationError.Namespace()),
-			Message: validationMessage(validationError),
-		})
+		details = append(details, fmt.Sprintf("%s: %s", fieldPath(validationError.Namespace()), validationMessage(validationError)))
 	}
 	return details
 }
@@ -178,4 +204,21 @@ func validationMessage(validationError validator.FieldError) string {
 	default:
 		return "Invalid value."
 	}
+}
+
+func nonEmpty(values []string) []string {
+	if len(values) == 0 {
+		return nil
+	}
+
+	result := make([]string, 0, len(values))
+	for _, value := range values {
+		if value != "" {
+			result = append(result, value)
+		}
+	}
+	if len(result) == 0 {
+		return nil
+	}
+	return result
 }
