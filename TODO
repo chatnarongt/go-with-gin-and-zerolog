@@ -7,6 +7,6 @@ Todos:
     ✔ Custom error handling middleware
     ☐ Implement authentication and authorization
     ☐ Compression middleware for API responses
-    ☐ Cors middleware for API responses
+    ✔ Cors middleware for API responses
   Worker:
     ☐ Create a worker module that can run with job name
