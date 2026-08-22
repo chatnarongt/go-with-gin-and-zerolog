@@ -66,7 +66,7 @@ func (m *Module) Start() error {
 
 func (m *Module) StartContext(ctx context.Context) error {
 	injector := do.New()
-	log := zerolog.Nop()
+	log := zerolog.New(os.Stderr).With().Timestamp().Logger()
 
 	if err := m.registerCore(injector); err != nil {
 		log.Error().Err(err).Msg("Register application modules")

@@ -20,7 +20,7 @@ const (
 
 type DatabaseConnectionConfig struct {
 	Driver          string        `validate:"required,oneof=sqlite postgres pgx sqlserver mssql mongodb mongo"`
-	DSN             string        `validate:"required"`
+	DSN             string        `validate:"-"`
 	Required        bool          `validate:"-"`
 	ReadOnly        bool          `validate:"-"`
 	MaxOpenConns    int           `validate:"min=0"`
@@ -102,6 +102,9 @@ func parseDatabaseConnection(prefix, defaultDriver, defaultDSN string, defaultRe
 
 	if err := validator.New().Struct(config); err != nil {
 		return DatabaseConnectionConfig{}, fmt.Errorf("validate %s config: %w", strings.ToLower(prefix), err)
+	}
+	if config.Required && config.DSN == "" {
+		return DatabaseConnectionConfig{}, fmt.Errorf("validate %s config: dsn is required", strings.ToLower(prefix))
 	}
 	if config.MaxOpenConns > 0 && config.MaxIdleConns > config.MaxOpenConns {
 		return DatabaseConnectionConfig{}, fmt.Errorf("validate %s config: max idle connections %d exceeds max open connections %d", strings.ToLower(prefix), config.MaxIdleConns, config.MaxOpenConns)

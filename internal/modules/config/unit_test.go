@@ -60,3 +60,23 @@ func TestConfigModule_Databases(t *testing.T) {
 		t.Errorf("expected logging default required false, got true")
 	}
 }
+
+func TestConfigModule_OptionalDatabaseEmptyDSNAllowed(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	t.Setenv("DB_LOGGING_DSN", "")
+
+	injector := do.New()
+	nopLogger := zerolog.Nop()
+	do.ProvideValue(injector, &nopLogger)
+
+	cfgModule := config.NewModule(config.ModuleOptions{})
+	if err := cfgModule.Register(injector, nil); err != nil {
+		t.Fatalf("expected empty DSN for optional DB to pass, got err: %v", err)
+	}
+
+	cfg := do.MustInvoke[*config.Config](injector)
+	if cfg.Databases.Logging.DSN != "" {
+		t.Errorf("expected empty logging DSN, got %s", cfg.Databases.Logging.DSN)
+	}
+}
