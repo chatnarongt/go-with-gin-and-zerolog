@@ -21,13 +21,13 @@ func main() {
 		},
 		Imports: []internal.Module{
 			database.NewModule(),
-			probe.NewModule(),
 			swagger.NewModule(swagger.ModuleOptions{
 				Spec:        openAPISpec,
 				Title:       "Go with Gin and Zerolog API",
 				Version:     "0.1.0",
 				Description: "HTTP API documentation.",
 			}),
+			probe.NewModule(),
 		},
 	})
 
