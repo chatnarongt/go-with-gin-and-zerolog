@@ -10,23 +10,31 @@ import (
 )
 
 type ApplicationConfig struct {
-	Environment      string        `validate:"oneof=development staging production"`
-	Port             int           `validate:"min=1,max=65535"`
-	LogLevel         zerolog.Level `validate:"min=-1,max=5"`
-	DebugMode        bool          `validate:"-"`
-	SwaggerEnabled   bool          `validate:"-"`
-	SwaggerBasePath  string        `validate:"-"`
-	SwaggerServerURL string        `validate:"-"`
+	Environment        string        `validate:"oneof=development staging production"`
+	Port               int           `validate:"min=1,max=65535"`
+	LogLevel           zerolog.Level `validate:"min=-1,max=5"`
+	DebugMode          bool          `validate:"-"`
+	CorsEnabled        bool          `validate:"-"`
+	CorsAllowedOrigins []string      `validate:"-"`
+	CorsAllowedMethods []string      `validate:"-"`
+	CorsAllowedHeaders []string      `validate:"-"`
+	SwaggerEnabled     bool          `validate:"-"`
+	SwaggerBasePath    string        `validate:"-"`
+	SwaggerServerURL   string        `validate:"-"`
 }
 
 func parseApplicationConfig(values map[string]string) (ApplicationConfig, error) {
 	config := ApplicationConfig{
-		Environment:     "development",
-		Port:            8080,
-		LogLevel:        zerolog.InfoLevel,
-		DebugMode:       false,
-		SwaggerEnabled:  false,
-		SwaggerBasePath: "/swagger",
+		Environment:        "development",
+		Port:               8080,
+		LogLevel:           zerolog.InfoLevel,
+		DebugMode:          false,
+		CorsEnabled:        true,
+		CorsAllowedOrigins: []string{"*"},
+		CorsAllowedMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		CorsAllowedHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		SwaggerEnabled:     false,
+		SwaggerBasePath:    "/swagger",
 	}
 
 	if raw, ok := values["APP_ENV"]; ok {
@@ -55,6 +63,26 @@ func parseApplicationConfig(values map[string]string) (ApplicationConfig, error)
 			return ApplicationConfig{}, fmt.Errorf("invalid APP_DEBUG_MODE %q: %w", raw, err)
 		}
 		config.DebugMode = debugMode
+	}
+
+	if raw, ok := values["APP_CORS_ENABLED"]; ok {
+		corsEnabled, err := strconv.ParseBool(raw)
+		if err != nil {
+			return ApplicationConfig{}, fmt.Errorf("invalid APP_CORS_ENABLED %q: %w", raw, err)
+		}
+		config.CorsEnabled = corsEnabled
+	}
+
+	if raw, ok := values["APP_CORS_ALLOWED_ORIGINS"]; ok {
+		config.CorsAllowedOrigins = splitList(raw)
+	}
+
+	if raw, ok := values["APP_CORS_ALLOWED_METHODS"]; ok {
+		config.CorsAllowedMethods = splitList(raw)
+	}
+
+	if raw, ok := values["APP_CORS_ALLOWED_HEADERS"]; ok {
+		config.CorsAllowedHeaders = splitList(raw)
 	}
 
 	if raw, ok := values["APP_SWAGGER_ENABLED"]; ok {

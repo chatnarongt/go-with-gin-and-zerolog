@@ -1,4 +1,4 @@
-package errs
+package errs_test
 
 import (
 	"encoding/json"
@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/chatnarongt/go-with-gin-and-zerolog/internal/errs"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -25,14 +26,14 @@ func TestResponseFor(t *testing.T) {
 	tests := []struct {
 		name     string
 		err      error
-		expected Response
+		expected errs.Response
 	}{
 		{
 			name: "custom error",
-			err:  BadRequest("Invalid request body.", "name: This field is required."),
-			expected: Response{
+			err:  errs.BadRequest("Invalid request body.", "name: This field is required."),
+			expected: errs.Response{
 				Status:  http.StatusBadRequest,
-				Code:    CodeBadRequest,
+				Code:    errs.CodeBadRequest,
 				Message: "Invalid request body.",
 				Errors:  []string{"name: This field is required."},
 			},
@@ -40,9 +41,9 @@ func TestResponseFor(t *testing.T) {
 		{
 			name: "validation error",
 			err:  validationErr,
-			expected: Response{
+			expected: errs.Response{
 				Status:  http.StatusBadRequest,
-				Code:    CodeBadRequest,
+				Code:    errs.CodeBadRequest,
 				Message: "Invalid request body.",
 				Errors:  []string{"email: This field is required."},
 			},
@@ -50,9 +51,9 @@ func TestResponseFor(t *testing.T) {
 		{
 			name: "nested validation error",
 			err:  nestedValidationErr,
-			expected: Response{
+			expected: errs.Response{
 				Status:  http.StatusBadRequest,
-				Code:    CodeBadRequest,
+				Code:    errs.CodeBadRequest,
 				Message: "Invalid request body.",
 				Errors:  []string{"person.email: This field is required."},
 			},
@@ -60,9 +61,9 @@ func TestResponseFor(t *testing.T) {
 		{
 			name: "syntax error",
 			err:  &json.SyntaxError{},
-			expected: Response{
+			expected: errs.Response{
 				Status:  http.StatusBadRequest,
-				Code:    CodeBadRequest,
+				Code:    errs.CodeBadRequest,
 				Message: "Invalid request body.",
 				Errors:  []string{"Malformed JSON."},
 			},
@@ -70,9 +71,9 @@ func TestResponseFor(t *testing.T) {
 		{
 			name: "unknown error",
 			err:  errors.New("database unavailable"),
-			expected: Response{
+			expected: errs.Response{
 				Status:  http.StatusInternalServerError,
-				Code:    CodeInternalServerError,
+				Code:    errs.CodeInternalServerError,
 				Message: "Internal server error.",
 			},
 		},
@@ -80,7 +81,7 @@ func TestResponseFor(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := ResponseFor(tt.err)
+			got := errs.ResponseFor(tt.err)
 			if got.Status != tt.expected.Status || got.Code != tt.expected.Code || got.Message != tt.expected.Message {
 				t.Fatalf("ResponseFor(%v) = %#v, want %#v", tt.err, got, tt.expected)
 			}
@@ -99,17 +100,17 @@ func TestResponseFor(t *testing.T) {
 func TestHTTPErrorConstructors(t *testing.T) {
 	tests := []struct {
 		name       string
-		newError   func(string, ...string) *Error
+		newError   func(string, ...string) *errs.Error
 		statusCode int
 		code       string
 	}{
-		{"unauthorized", Unauthorized, http.StatusUnauthorized, CodeUnauthorized},
-		{"forbidden", Forbidden, http.StatusForbidden, CodeForbidden},
-		{"not found", NotFound, http.StatusNotFound, CodeNotFound},
-		{"method not allowed", MethodNotAllowed, http.StatusMethodNotAllowed, CodeMethodNotAllowed},
-		{"not implemented", NotImplemented, http.StatusNotImplemented, CodeNotImplemented},
-		{"bad gateway", BadGateway, http.StatusBadGateway, CodeBadGateway},
-		{"service unavailable", ServiceUnavailable, http.StatusServiceUnavailable, CodeServiceUnavailable},
+		{"unauthorized", errs.Unauthorized, http.StatusUnauthorized, errs.CodeUnauthorized},
+		{"forbidden", errs.Forbidden, http.StatusForbidden, errs.CodeForbidden},
+		{"not found", errs.NotFound, http.StatusNotFound, errs.CodeNotFound},
+		{"method not allowed", errs.MethodNotAllowed, http.StatusMethodNotAllowed, errs.CodeMethodNotAllowed},
+		{"not implemented", errs.NotImplemented, http.StatusNotImplemented, errs.CodeNotImplemented},
+		{"bad gateway", errs.BadGateway, http.StatusBadGateway, errs.CodeBadGateway},
+		{"service unavailable", errs.ServiceUnavailable, http.StatusServiceUnavailable, errs.CodeServiceUnavailable},
 	}
 
 	for _, tt := range tests {
@@ -123,7 +124,7 @@ func TestHTTPErrorConstructors(t *testing.T) {
 }
 
 func TestResponseJSONIncludesNullErrorsWhenEmpty(t *testing.T) {
-	body, err := json.Marshal(InternalServerError().Response())
+	body, err := json.Marshal(errs.InternalServerError().Response())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -133,14 +134,14 @@ func TestResponseJSONIncludesNullErrorsWhenEmpty(t *testing.T) {
 }
 
 func TestNewDropsEmptyErrors(t *testing.T) {
-	if got := New(http.StatusBadRequest, CodeBadRequest, "Invalid request.", "", "").Response().Errors; got != nil {
+	if got := errs.New(http.StatusBadRequest, errs.CodeBadRequest, "Invalid request.", "", "").Response().Errors; got != nil {
 		t.Fatalf("errors = %#v, want nil", got)
 	}
 }
 
 func TestErrorUnwrapsCause(t *testing.T) {
 	cause := errors.New("database unavailable")
-	if !errors.Is(Wrap(cause, http.StatusBadRequest, CodeBadRequest, "Invalid request body."), cause) {
+	if !errors.Is(errs.Wrap(cause, http.StatusBadRequest, errs.CodeBadRequest, "Invalid request body."), cause) {
 		t.Fatal("wrapped cause not found")
 	}
 }

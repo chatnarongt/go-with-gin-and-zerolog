@@ -85,6 +85,13 @@ func (m *Module) StartContext(ctx context.Context) error {
 	}
 
 	router := gin.New()
+	if config.Application.CorsEnabled {
+		router.Use(middleware.CORS(middleware.CORSConfig{
+			AllowedOrigins: config.Application.CorsAllowedOrigins,
+			AllowedMethods: config.Application.CorsAllowedMethods,
+			AllowedHeaders: config.Application.CorsAllowedHeaders,
+		}))
+	}
 	router.Use(
 		middleware.ErrorHandler(),
 		middleware.RequestID(),
