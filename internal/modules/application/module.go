@@ -264,6 +264,8 @@ func (m *Module) destroy(ctx context.Context) error {
 }
 
 func (m *Module) shutdown(ctx context.Context, server *http.Server, injector do.Injector) error {
+	log := *do.MustInvoke[*zerolog.Logger](injector)
+	log.Info().Msg("Received shutdown signal, shutting down application...")
 	serverErr := server.Shutdown(ctx)
 	injectorReport := injector.ShutdownWithContext(ctx)
 	var injectorErr error
