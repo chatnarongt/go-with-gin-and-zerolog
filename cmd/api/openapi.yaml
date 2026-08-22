@@ -41,7 +41,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/GetReadinessResponseBody'
               example:
-                database: NOT_READY
+                databaseMain: NOT_READY
+                databaseAnalytics: OK
                 service1: OK
                 service2: OK
 components:
@@ -49,11 +50,14 @@ components:
     GetReadinessResponseBody:
       type: object
       required:
-        - database
+        - databaseMain
+        - databaseAnalytics
         - service1
         - service2
       properties:
-        database:
+        databaseMain:
+          $ref: '#/components/schemas/ReadinessStatus'
+        databaseAnalytics:
           $ref: '#/components/schemas/ReadinessStatus'
         service1:
           $ref: '#/components/schemas/ReadinessStatus'

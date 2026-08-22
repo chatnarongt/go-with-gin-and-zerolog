@@ -3,7 +3,7 @@ package config
 type Config struct {
 	Values      map[string]string
 	Application ApplicationConfig
-	Database    DatabaseConfig
+	Databases   DatabasesConfig
 }
 
 func (c *Config) String(key string) string {

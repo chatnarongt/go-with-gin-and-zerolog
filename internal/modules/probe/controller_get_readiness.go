@@ -1,12 +1,17 @@
 package probe
 
-import "github.com/gin-gonic/gin"
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
 
 func (c *Controller) getReadiness(ctx *gin.Context) {
 	response := c.service.GetReadiness(ctx.Request.Context())
-	status := 200
-	if response.Database != ReadinessStatusOK {
-		status = 503
+	if response.DatabaseMain != ReadinessStatusOK || response.DatabaseAnalytics != ReadinessStatusOK {
+		ctx.JSON(http.StatusServiceUnavailable, response)
+		return
 	}
-	ctx.JSON(status, response)
+
+	ctx.JSON(http.StatusOK, response)
 }

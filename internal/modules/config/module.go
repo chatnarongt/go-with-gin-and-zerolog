@@ -49,12 +49,12 @@ func (m *Module) Register(i do.Injector, _ *gin.Engine) error {
 		return err
 	}
 
-	database, err := parseDatabaseConfig(values)
+	databases, err := parseDatabasesConfig(values)
 	if err != nil {
 		return err
 	}
 
-	do.ProvideValue(i, &Config{Values: values, Application: application, Database: database})
+	do.ProvideValue(i, &Config{Values: values, Application: application, Databases: databases})
 	m.logger = do.MustInvoke[*zerolog.Logger](i)
 	return nil
 }

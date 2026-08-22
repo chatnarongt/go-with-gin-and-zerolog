@@ -15,23 +15,30 @@ const (
 )
 
 type GetReadinessResponseBody struct {
-	Database ReadinessStatus `json:"database"`
-	Service1 ReadinessStatus `json:"service1"`
-	Service2 ReadinessStatus `json:"service2"`
+	DatabaseMain      ReadinessStatus `json:"databaseMain"`
+	DatabaseAnalytics ReadinessStatus `json:"databaseAnalytics"`
+	Service1          ReadinessStatus `json:"service1"`
+	Service2          ReadinessStatus `json:"service2"`
 }
 
 func (s *Service) GetReadiness(ctx context.Context) GetReadinessResponseBody {
 	pingContext, cancel := context.WithTimeout(ctx, readinessPingTimeout)
 	defer cancel()
 
-	databaseStatus := ReadinessStatusOK
-	if err := s.db.PingContext(pingContext); err != nil {
-		databaseStatus = ReadinessStatusNotReady
+	mainStatus := ReadinessStatusOK
+	if err := s.dbs.Main.PingContext(pingContext); err != nil {
+		mainStatus = ReadinessStatusNotReady
+	}
+
+	analyticsStatus := ReadinessStatusOK
+	if err := s.dbs.Analytics.PingContext(pingContext); err != nil {
+		analyticsStatus = ReadinessStatusNotReady
 	}
 
 	return GetReadinessResponseBody{
-		Database: databaseStatus,
-		Service1: ReadinessStatusOK,
-		Service2: ReadinessStatusOK,
+		DatabaseMain:      mainStatus,
+		DatabaseAnalytics: analyticsStatus,
+		Service1:          ReadinessStatusOK,
+		Service2:          ReadinessStatusOK,
 	}
 }

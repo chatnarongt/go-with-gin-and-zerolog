@@ -1,21 +1,20 @@
 package probe
 
 import (
-	"database/sql"
-
+	"github.com/chatnarongt/go-with-gin-and-zerolog/internal/modules/database"
 	"github.com/rs/zerolog"
 	"github.com/samber/do/v2"
 )
 
 type Service struct {
 	log *zerolog.Logger
-	db  *sql.DB
+	dbs *database.Databases
 }
 
 func NewService(i do.Injector) (*Service, error) {
 	return &Service{
 		log: do.MustInvoke[*zerolog.Logger](i),
-		db:  do.MustInvoke[*sql.DB](i),
+		dbs: do.MustInvoke[*database.Databases](i),
 	}, nil
 }
 

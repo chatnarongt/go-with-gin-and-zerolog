@@ -1,6 +1,6 @@
 Todos:
   All:
-    ☐ Support for multiple database connections and multiple database types
+    ✔ Support for multiple database connections and multiple database types
   API:
     ✔ Setup project structure and initialize repository
     ✔ Setup swagger for API documentation
