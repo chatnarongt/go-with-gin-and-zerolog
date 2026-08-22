@@ -147,15 +147,15 @@ func (m *Module) StartContext(ctx context.Context) error {
 		log.Error().Err(err).Msg("HTTP server stopped unexpectedly")
 		return err
 	case <-ctx.Done():
+		if config.Application.DebugMode {
+			// Print a newline to separate the shutdown log from any previous logs in debug mode
+			println("")
+		}
+		log.Info().Msg("Received shutdown signal, shutting down application...")
 	}
 
 	shutdownContext, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-
-	if config.Application.DebugMode {
-		// Print a newline to separate the shutdown log from any previous logs in debug mode
-		println("")
-	}
 
 	if err := m.shutdown(shutdownContext, server, injector); err != nil {
 		log.Error().Err(err).Msg("Application shutdown failed")
@@ -264,8 +264,6 @@ func (m *Module) destroy(ctx context.Context) error {
 }
 
 func (m *Module) shutdown(ctx context.Context, server *http.Server, injector do.Injector) error {
-	log := *do.MustInvoke[*zerolog.Logger](injector)
-	log.Info().Msg("Received shutdown signal, shutting down application...")
 	serverErr := server.Shutdown(ctx)
 	injectorReport := injector.ShutdownWithContext(ctx)
 	var injectorErr error
