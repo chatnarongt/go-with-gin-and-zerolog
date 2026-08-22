@@ -1,5 +1,5 @@
 # Sqlite data
-data/
+data/*.db
 
 # .env files
 **/*.env
