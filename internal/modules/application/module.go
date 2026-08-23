@@ -92,6 +92,12 @@ func (m *Module) StartContext(ctx context.Context) error {
 			AllowedHeaders: config.Application.CorsAllowedHeaders,
 		}))
 	}
+	if config.Application.CompressionEnabled {
+		router.Use(middleware.Compression(middleware.CompressionConfig{
+			Encodings: config.Application.CompressionEncodings,
+			MinBytes:  config.Application.CompressionMinBytes,
+		}))
+	}
 	router.Use(
 		middleware.ErrorHandler(),
 		middleware.RequestID(),

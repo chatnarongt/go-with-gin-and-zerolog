@@ -10,31 +10,37 @@ import (
 )
 
 type ApplicationConfig struct {
-	Environment        string        `validate:"oneof=development staging production"`
-	Port               int           `validate:"min=1,max=65535"`
-	LogLevel           zerolog.Level `validate:"min=-1,max=5"`
-	DebugMode          bool          `validate:"-"`
-	CorsEnabled        bool          `validate:"-"`
-	CorsAllowedOrigins []string      `validate:"-"`
-	CorsAllowedMethods []string      `validate:"-"`
-	CorsAllowedHeaders []string      `validate:"-"`
-	SwaggerEnabled     bool          `validate:"-"`
-	SwaggerBasePath    string        `validate:"-"`
-	SwaggerServerURL   string        `validate:"-"`
+	Environment          string        `validate:"oneof=development staging production"`
+	Port                 int           `validate:"min=1,max=65535"`
+	LogLevel             zerolog.Level `validate:"min=-1,max=5"`
+	DebugMode            bool          `validate:"-"`
+	CorsEnabled          bool          `validate:"-"`
+	CorsAllowedOrigins   []string      `validate:"-"`
+	CorsAllowedMethods   []string      `validate:"-"`
+	CorsAllowedHeaders   []string      `validate:"-"`
+	CompressionEnabled   bool          `validate:"-"`
+	CompressionEncodings []string      `validate:"min=1,dive,oneof=zstd br gzip"`
+	CompressionMinBytes  int           `validate:"min=0"`
+	SwaggerEnabled       bool          `validate:"-"`
+	SwaggerBasePath      string        `validate:"-"`
+	SwaggerServerURL     string        `validate:"-"`
 }
 
 func parseApplicationConfig(values map[string]string) (ApplicationConfig, error) {
 	config := ApplicationConfig{
-		Environment:        "development",
-		Port:               8080,
-		LogLevel:           zerolog.InfoLevel,
-		DebugMode:          false,
-		CorsEnabled:        true,
-		CorsAllowedOrigins: []string{"*"},
-		CorsAllowedMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		CorsAllowedHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization"},
-		SwaggerEnabled:     false,
-		SwaggerBasePath:    "/swagger",
+		Environment:          "development",
+		Port:                 8080,
+		LogLevel:             zerolog.InfoLevel,
+		DebugMode:            false,
+		CorsEnabled:          true,
+		CorsAllowedOrigins:   []string{"*"},
+		CorsAllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		CorsAllowedHeaders:   []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		CompressionEnabled:   false,
+		CompressionEncodings: []string{"zstd", "br", "gzip"},
+		CompressionMinBytes:  1024,
+		SwaggerEnabled:       false,
+		SwaggerBasePath:      "/swagger",
 	}
 
 	if raw, ok := values["APP_ENV"]; ok {
@@ -83,6 +89,30 @@ func parseApplicationConfig(values map[string]string) (ApplicationConfig, error)
 
 	if raw, ok := values["APP_CORS_ALLOWED_HEADERS"]; ok {
 		config.CorsAllowedHeaders = splitList(raw)
+	}
+
+	if raw, ok := values["APP_COMPRESSION_ENABLED"]; ok {
+		compressionEnabled, err := strconv.ParseBool(raw)
+		if err != nil {
+			return ApplicationConfig{}, fmt.Errorf("invalid APP_COMPRESSION_ENABLED %q: %w", raw, err)
+		}
+		config.CompressionEnabled = compressionEnabled
+	}
+
+	if raw, ok := values["APP_COMPRESSION_ENCODINGS"]; ok {
+		encodings := splitList(raw)
+		for i, enc := range encodings {
+			encodings[i] = strings.ToLower(enc)
+		}
+		config.CompressionEncodings = encodings
+	}
+
+	if raw, ok := values["APP_COMPRESSION_MIN_BYTES"]; ok {
+		minBytes, err := strconv.Atoi(raw)
+		if err != nil {
+			return ApplicationConfig{}, fmt.Errorf("invalid APP_COMPRESSION_MIN_BYTES %q: %w", raw, err)
+		}
+		config.CompressionMinBytes = minBytes
 	}
 
 	if raw, ok := values["APP_SWAGGER_ENABLED"]; ok {
