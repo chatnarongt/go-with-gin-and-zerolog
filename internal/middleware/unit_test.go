@@ -467,3 +467,63 @@ func TestCompression_SkipSSEAndUpgrade(t *testing.T) {
 		t.Fatalf("expected no Content-Encoding for Upgrade request, got %q", wWS.Header().Get("Content-Encoding"))
 	}
 }
+
+func TestRequestID_GeneratesNewWhenMissing(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.Use(middleware.RequestID())
+
+	var capturedCtxID string
+	var capturedGinID any
+	router.GET("/test", func(c *gin.Context) {
+		capturedGinID, _ = c.Get("X-Request-ID")
+		capturedCtxID, _ = middleware.RequestIDFromContext(c.Request.Context())
+		c.Status(http.StatusOK)
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	respID := w.Header().Get("X-Request-ID")
+	if respID == "" {
+		t.Fatal("expected X-Request-ID header in response, got empty")
+	}
+	if capturedCtxID != respID {
+		t.Errorf("context request ID = %q, want %q", capturedCtxID, respID)
+	}
+	if capturedGinID != respID {
+		t.Errorf("gin context request ID = %v, want %q", capturedGinID, respID)
+	}
+}
+
+func TestRequestID_UsesIncomingHeader(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.Use(middleware.RequestID())
+
+	customID := "custom-request-id-123"
+	var capturedCtxID string
+	var capturedGinID any
+	router.GET("/test", func(c *gin.Context) {
+		capturedGinID, _ = c.Get("X-Request-ID")
+		capturedCtxID, _ = middleware.RequestIDFromContext(c.Request.Context())
+		c.Status(http.StatusOK)
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req.Header.Set("X-Request-ID", customID)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	respID := w.Header().Get("X-Request-ID")
+	if respID != customID {
+		t.Fatalf("response X-Request-ID = %q, want %q", respID, customID)
+	}
+	if capturedCtxID != customID {
+		t.Errorf("context request ID = %q, want %q", capturedCtxID, customID)
+	}
+	if capturedGinID != customID {
+		t.Errorf("gin context request ID = %v, want %q", capturedGinID, customID)
+	}
+}

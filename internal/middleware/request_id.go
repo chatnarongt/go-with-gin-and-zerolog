@@ -14,11 +14,15 @@ type requestIDContextKey struct{}
 
 func RequestID() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		requestID, err := internal.NewID()
-		if err != nil {
-			response := errs.InternalServerError().Response()
-			c.AbortWithStatusJSON(response.Status, response)
-			return
+		requestID := c.GetHeader(requestIDHeader)
+		if requestID == "" {
+			var err error
+			requestID, err = internal.NewID()
+			if err != nil {
+				response := errs.InternalServerError().Response()
+				c.AbortWithStatusJSON(response.Status, response)
+				return
+			}
 		}
 
 		c.Header(requestIDHeader, requestID)
