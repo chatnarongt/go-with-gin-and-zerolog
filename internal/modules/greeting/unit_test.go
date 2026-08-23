@@ -13,6 +13,8 @@ import (
 )
 
 func TestGreetingModule_RegisterAndExecuteJobs(t *testing.T) {
+	t.Setenv("DB_MAIN_DSN", "file::memory:?cache=shared")
+	t.Setenv("DB_ANALYTICS_DSN", "file::memory:?cache=shared")
 	t.Setenv("DB_LOGGING_DSN", "")
 
 	app := worker.NewModule(worker.ModuleOptions{
