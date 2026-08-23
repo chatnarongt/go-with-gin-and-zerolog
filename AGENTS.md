@@ -10,6 +10,7 @@ go test ./...
 go vet ./...
 go build ./cmd/api ./cmd/worker
 go run ./cmd/api
+go run ./cmd/worker --job greeting:greeting
 ```
 
 Run one package or test:
@@ -34,15 +35,18 @@ curl http://localhost:8080/probe/readiness
 
 This repository is a Go foundation for HTTP services. Gin handles HTTP routing, `samber/do/v2` owns runtime dependency injection, zerolog owns application logging, and database connections are opened through `database/sql` using drivers for SQLite (`modernc.org/sqlite`), PostgreSQL (`github.com/jackc/pgx/v5/stdlib`), and MSSQL (`github.com/microsoft/go-mssqldb`), plus MongoDB via `go.mongodb.org/mongo-driver/v2`.
 
-`cmd/api/main.go` is the composition root. It creates `application.Module`, passes config env-file paths, and imports feature modules. `cmd/worker/main.go` is currently only a package placeholder; do not assume it starts a worker.
+`cmd/api/main.go` and `cmd/worker/main.go` are composition roots. `cmd/api` runs the HTTP server with `application.Module`, and `cmd/worker` executes CLI jobs with `worker.Module` via `--job <name>`.
 
 Shared modules under `internal/modules` implement `internal.Module`:
 
-- `application`: coordinates the complete lifecycle. It registers core modules, registers command-imported feature modules, initializes lifecycle hooks, starts `http.Server`, and performs graceful shutdown.
+- `application`: coordinates HTTP server lifecycle. Registers core modules, registers command-imported feature modules, initializes lifecycle hooks, starts `http.Server`, and performs graceful shutdown.
+- `worker`: coordinates CLI job execution. Registers core modules, discovers jobs via `internal.JobRegistrar` and `internal.JobRegistry`, runs the target job specified by `--job`, and handles graceful shutdown.
 - `logger`: provides `*zerolog.Logger`, applying configured level, timestamps, console/json output, and hooks.
 - `config`: loads env files and process environment, parses typed application/database groups, validates them, and provides `*config.Config`.
 - `database`: opens configured database connections (`Main`, `Analytics`, `Logging`) supporting SQLite, PostgreSQL, MSSQL, and MongoDB, provides `*database.Databases`, named `*sql.DB`, `map[string]*sql.DB`, and `*mongo.Client` / `*mongo.Database` (named `"logging"` when configured), pings required databases during initialization, and closes/disconnects them during destruction.
 - `probe`: provides liveness/readiness service and controller, then maps `/probe/liveness` and `/probe/readiness`.
+- `swagger`: serves OpenAPI spec and Swagger UI when enabled.
+- `greeting`: sample feature module implementing HTTP endpoints and `internal.JobRegistrar` (`greeting:greeting`).
 
 Registration order is significant. `application.Module.coreModules()` registers logger before config because the config module logs from `OnModuleInit()` and resolves the logger after providing config. Feature imports register afterward. Providers may resolve dependencies with `do.MustInvoke` during registration/provider execution; missing services fail fast. Do not silently deduplicate module imports or routes.
 
