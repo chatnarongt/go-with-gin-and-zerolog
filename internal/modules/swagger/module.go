@@ -37,6 +37,10 @@ func NewModule(options ModuleOptions) *Module {
 var _ internal.Module = (*Module)(nil)
 
 func (m *Module) Register(i do.Injector, router *gin.Engine) error {
+	if router == nil {
+		return nil
+	}
+
 	applicationConfig := do.MustInvoke[*config.Config](i).Application
 	m.logger = do.MustInvoke[*zerolog.Logger](i)
 	if !applicationConfig.SwaggerEnabled {

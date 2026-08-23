@@ -2,9 +2,8 @@ package middleware
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 
+	"github.com/chatnarongt/go-with-gin-and-zerolog/internal"
 	"github.com/chatnarongt/go-with-gin-and-zerolog/internal/errs"
 	"github.com/gin-gonic/gin"
 )
@@ -15,7 +14,7 @@ type requestIDContextKey struct{}
 
 func RequestID() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		requestID, err := newRequestID()
+		requestID, err := internal.NewID()
 		if err != nil {
 			response := errs.InternalServerError().Response()
 			c.AbortWithStatusJSON(response.Status, response)
@@ -34,12 +33,4 @@ func RequestID() gin.HandlerFunc {
 func RequestIDFromContext(ctx context.Context) (string, bool) {
 	requestID, ok := ctx.Value(requestIDContextKey{}).(string)
 	return requestID, ok
-}
-
-func newRequestID() (string, error) {
-	id := make([]byte, 16)
-	if _, err := rand.Read(id); err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(id), nil
 }

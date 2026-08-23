@@ -35,7 +35,10 @@ func (m *Module) Register(i do.Injector, router *gin.Engine) error {
 	if err != nil {
 		return err
 	}
-	controller.RegisterRoutes(router)
+
+	if router != nil {
+		controller.RegisterRoutes(router)
+	}
 	return nil
 }
 

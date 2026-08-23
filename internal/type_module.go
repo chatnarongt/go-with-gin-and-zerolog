@@ -22,3 +22,13 @@ type OnModuleDestroy interface {
 type Controller interface {
 	RegisterRoutes(*gin.Engine)
 }
+
+type Job func(context.Context, do.Injector) error
+
+type JobRegistry interface {
+	RegisterJob(name string, handler Job)
+}
+
+type JobRegistrar interface {
+	RegisterJobs(JobRegistry)
+}
