@@ -8,6 +8,7 @@ import (
 	"github.com/chatnarongt/go-with-gin-and-zerolog/internal/modules/config"
 	"github.com/chatnarongt/go-with-gin-and-zerolog/internal/modules/database"
 	"github.com/chatnarongt/go-with-gin-and-zerolog/internal/modules/greeting"
+	"github.com/chatnarongt/go-with-gin-and-zerolog/internal/modules/probe"
 	"github.com/chatnarongt/go-with-gin-and-zerolog/internal/modules/transaction"
 	"github.com/chatnarongt/go-with-gin-and-zerolog/internal/modules/worker"
 )
@@ -19,6 +20,7 @@ func main() {
 		},
 		Imports: []internal.Module{
 			database.NewModule(),
+			probe.NewModule(),
 			greeting.NewModule(),
 			transaction.NewModule(),
 		},

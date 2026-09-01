@@ -7,7 +7,7 @@ import (
 )
 
 func (j *Job) runSubmit(ctx context.Context, i do.Injector) error {
-	res := j.probe.GetLiveness()
-	j.logger.Trace().Msg("Running transaction submit job: " + string(res))
+	res := j.probe.GetReadiness(ctx)
+	j.logger.Trace().Msg("Running transaction submit job: " + string(res.DatabaseMain))
 	return nil
 }

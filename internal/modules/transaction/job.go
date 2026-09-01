@@ -21,6 +21,7 @@ func NewJob(i do.Injector) (*Job, error) {
 	return &Job{
 		logger: do.MustInvoke[*zerolog.Logger](i),
 		db:     do.MustInvoke[*database.Databases](i),
+		probe:  do.MustInvoke[*probe.Service](i),
 	}, nil
 }
 
